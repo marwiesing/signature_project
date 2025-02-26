@@ -1,0 +1,34 @@
+# Web framework
+Flask==2.3.2
+
+# Bootstrap for Flask
+Bootstrap_Flask==2.2.0
+
+# Rich text editor for Flask forms
+Flask_CKEditor==0.4.6
+
+# User authentication
+Flask_Login==0.6.2
+
+# Gravatar support for avatars
+Flask-Gravatar==0.5.0
+
+# Flask SQLAlchemy for database management
+Flask_SQLAlchemy==3.0.5
+SQLAlchemy==2.0.19
+
+# PostgreSQL database adapter
+psycopg2-binary
+
+# Flask forms handling
+Flask_WTF==1.1.1
+WTForms==3.0.1
+
+# WSGI server for production
+gunicorn
+
+# Werkzeug (used internally by Flask)
+Werkzeug==2.3.6
+
+# Environment variable management
+python-dotenv
