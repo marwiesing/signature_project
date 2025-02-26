@@ -32,3 +32,6 @@ Werkzeug==2.3.6
 
 # Environment variable management
 python-dotenv
+
+pandas
+sqlparse
