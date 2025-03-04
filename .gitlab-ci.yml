@@ -3,9 +3,14 @@ stages:
 
 test-runner:
   stage: test
-  tags:
-  - docker # This must match the runner's tags in GitLab
+  image: docker:latest # Use a Docker-enabled image
+  services:
+  - docker:dind # Enable Docker-in-Docker
+  variables:
+    DOCKER_DRIVER: overlay2
   script:
   - echo "✅ GitLab Runner is working!"
   - uname -a
-  - docker --version
+  - docker --version # This should now work
+  - docker ps # List running containers
+  - docker run hello-world # Run a test container
