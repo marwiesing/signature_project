@@ -1,0 +1,20 @@
+stages:
+- test
+
+test-runner:
+  stage: test
+  image: docker:latest
+  services:
+  - name: docker:dind
+    command: [ "--tls=false" ] # Fixes "connection refused" issues
+  variables:
+    DOCKER_DRIVER: overlay2
+    DOCKER_TLS_CERTDIR: "" # Ensures Docker client can connect
+  before_script:
+  - docker info # Debug Docker-in-Docker
+  script:
+  - echo "✅ GitLab Runner is working!"
+  - uname -a
+  - docker --version
+  - docker ps # This should now work
+  - docker run hello-world # Run a test container
