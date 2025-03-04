@@ -8,12 +8,12 @@ spec:
     project: default
     source:
         repoURL: 'git@192.168.0.100:homelab/signature_project.git'
-        path: manifests
+        path: manifests/nginx
         targetRevision: main
     destination:
         server: 'https://kubernetes.default.svc'
         namespace: default
     syncPolicy:
-      automated:
-        selfHeal: true
-        prune: true
+        automated:
+            selfHeal: true
+            prune: true
