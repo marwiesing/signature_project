@@ -8,7 +8,7 @@ spec:
     project: default
     source:
         repoURL: 'git@192.168.0.100:homelab/signature_project.git'
-        path: manifests/nginx
+        path: tests/nginx
         targetRevision: main
     destination:
         server: 'https://kubernetes.default.svc'

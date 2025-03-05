@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'git@192.168.0.100:homelab/signature_project.git'
-    path: argocd
+    path: manifests
     targetRevision: main
   destination:
     server: 'https://kubernetes.default.svc'
