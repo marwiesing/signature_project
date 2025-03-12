@@ -6,13 +6,21 @@ test-runner:
   image: docker:latest
   services:
   - name: docker:dind
-    command: [ "--tls=false" ] # Fixes "connection refused" issues
+    command:
+    - "--tls=false"
+    - "--insecure-registry=192.168.0.100:5050"
   variables:
     DOCKER_DRIVER: overlay2
     DOCKER_TLS_CERTDIR: "" # Ensures Docker client can connect
   before_script:
   - docker info # Debug Docker-in-Docker
+  - echo "$GITLAB_REGISTRY_PASSWORD" | docker login -u "$GITLAB_REGISTRY_USER" --password-stdin "$GITLAB_REGISTRY_URL" || exit 1
   script:
+  - echo "🔍 Checking Variables:"
+  - echo "GITLAB_REGISTRY_USER:"
+  - echo "$GITLAB_REGISTRY_USER"
+  - echo "GITLAB_REGISTRY_URL:"
+  - echo "$GITLAB_REGISTRY_URL"
   - echo "✅ GitLab Runner is working!"
   - uname -a
   - docker --version

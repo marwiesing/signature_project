@@ -4,6 +4,7 @@ metadata:
   labels:
     app: nginx
   name: nginx-test-deployment
+  namespace: nginx-test
 spec:
   replicas: 3
   selector:
@@ -14,6 +15,20 @@ spec:
       labels:
         app: nginx
     spec:
+      tolerations:
+      - key: "key"
+        operator: "Equal"
+        value: "value"
+        effect: "NoSchedule"
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: "kubernetes.io/hostname"
+                operator: "In"
+                values:
+                - "ubuntu-2"
       containers:
       - image: nginx
         name: nginx
