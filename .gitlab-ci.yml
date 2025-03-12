@@ -12,6 +12,7 @@ test-runner:
     DOCKER_TLS_CERTDIR: "" # Ensures Docker client can connect
   before_script:
   - docker info # Debug Docker-in-Docker
+  - echo $DOCKER_PWD | docker login -u $DOCKER_USER --password-stdin $DOCKER_URL || exit 1
   script:
   - echo "✅ GitLab Runner is working!"
   - uname -a
