@@ -16,6 +16,11 @@ test-runner:
   - docker info # Debug Docker-in-Docker
   - echo "$GITLAB_REGISTRY_PASSWORD" | docker login -u "$GITLAB_REGISTRY_USER" --password-stdin "$GITLAB_REGISTRY_URL" || exit 1
   script:
+  - echo "🔍 Checking Variables:"
+  - echo "GITLAB_REGISTRY_USER:"
+  - echo "$GITLAB_REGISTRY_USER"
+  - echo "GITLAB_REGISTRY_URL:"
+  - echo "$GITLAB_REGISTRY_URL"
   - echo "✅ GitLab Runner is working!"
   - uname -a
   - docker --version
