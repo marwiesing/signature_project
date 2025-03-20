@@ -77,7 +77,7 @@ if __name__ == "__main__":
     query_databases = "SELECT datname FROM pg_database WHERE datistemplate = false;"
     print(db.read_sql_query(query_databases))
 
-    print("\n🔹 Tables in chatbot_db:")
+    print("\n🔹 Verify the Privileges of chatbot_db:")
     query_tables = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
     print(db.read_sql_query(query_tables))
 
