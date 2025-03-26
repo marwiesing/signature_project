@@ -1,37 +1,9 @@
-import os
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from dotenv import load_dotenv
+from flask import request, jsonify, current_app
 from src.models import db, Chat, Message
-#import requests
 
-# Load environment variables
-load_dotenv()
+# No Flask() creation here anymore!
 
-app = Flask(__name__)
-
-# Set database configuration from environment variables
-app.config["SQLALCHEMY_DATABASE_URI"] = (
-    f"postgresql://{os.getenv('PSQL_USER')}:{os.getenv('PSQL_PASSWORD')}"
-    f"@{os.getenv('PSQL_HOST')}:{os.getenv('PSQL_PORT')}/{os.getenv('PSQL_DB')}"
-)
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False  # Avoid warning
-
-# Initialize extensions
-db.init_app(app)
-migrate = Migrate(app, db)  # <== Add this line
-
-
-
-#OLLAMA_API_URL = "http://localhost:11434/api/generate"
-
-#def send_to_ollama(message):
-    #response = requests.post(OLLAMA_API_URL, json={"model": "deepseek", "prompt": message})
-    #return response.json().get("response", "Sorry, I didn't understand that.")
-
-
-@app.route("/chat", methods=["POST"])
+@current_app.route("/chat", methods=["POST"])
 def chat():
     data = request.json
     user_message = data.get("message")
@@ -39,8 +11,7 @@ def chat():
     if not user_message:
         return jsonify({"error": "Message cannot be empty"}), 400
 
-    # Store message in DB
-    chat = Chat()
+    chat = Chat(user_id=1)  # 👈 placeholder until you have user mgmt
     db.session.add(chat)
     db.session.commit()
 
@@ -48,16 +19,4 @@ def chat():
     db.session.add(message)
     db.session.commit()
 
-    # Get chatbot response
-#    bot_response = send_to_ollama(user_message)
-
-    # Store bot message in DB
-#    bot_message = Message(chat_id=chat.id, sender="bot", content=bot_response)
-#    db.session.add(bot_message)
-#    db.session.commit()
-
-
     return jsonify({"chat_id": chat.idchat, "message": user_message})
-
-if __name__ == "__main__":
-    app.run(debug=True)
