@@ -1,19 +1,20 @@
-<form id="chat-form">
-    <input type="text" id="message" placeholder="Type a message..." required>
-    <button type="submit">Send</button>
-</form>
-<div id="chat-box"></div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Message Board</title>
+</head>
+<body>
+    <h1>Submit a Message</h1>
+    <form method="POST">
+        <textarea name="content" rows="4" cols="50" required></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
 
-<script>
-    document.getElementById("chat-form").addEventListener("submit", async function(event) {
-        event.preventDefault();
-        let message = document.getElementById("message").value;
-        let response = await fetch("/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: message })
-        });
-        let data = await response.json();
-        document.getElementById("chat-box").innerHTML += `<p><strong>You:</strong> ${message}</p>`;
-    });
-</script>
+    <h2>All Messages</h2>
+    <ul>
+        {% for message in messages %}
+            <li><strong>{{ message.timestamp }}</strong>: {{ message.content }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

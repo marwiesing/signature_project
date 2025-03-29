@@ -1,5 +1,8 @@
 from sqlalchemy import create_engine, text
-from config import config  # this imports your Config instance
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.config import config  # this imports your Config instance
 
 def test_connection():
     try:

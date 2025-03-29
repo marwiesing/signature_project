@@ -1,22 +1,22 @@
-from flask import request, jsonify, current_app
-from src.models import db, Chat, Message
+from flask import Blueprint, request, render_template, redirect
+from src.models import db, Message, Chat
 
-# No Flask() creation here anymore!
+bp = Blueprint("main", __name__)
 
-@current_app.route("/chat", methods=["POST"])
-def chat():
-    data = request.json
-    user_message = data.get("message")
+@bp.route("/", methods=["GET", "POST"])
+def index():
+    if request.method == "POST":
+        content = request.form.get("content")
+        if content:
+            chat = Chat(user_id=1)
+            db.session.add(chat)
+            db.session.flush()  # Get the ID without committing yet
 
-    if not user_message:
-        return jsonify({"error": "Message cannot be empty"}), 400
+            # Now insert the message using the real chat ID
+            message = Message(chat_id=chat.idchat, sender="user", content=content)
+            db.session.add(message)
+            db.session.commit()
+        return redirect("/")
 
-    chat = Chat(user_id=1)  # 👈 placeholder until you have user mgmt
-    db.session.add(chat)
-    db.session.commit()
-
-    message = Message(chat_id=chat.idchat, sender="user", content=user_message)
-    db.session.add(message)
-    db.session.commit()
-
-    return jsonify({"chat_id": chat.idchat, "message": user_message})
+    messages = Message.query.order_by(Message.timestamp.desc()).all()
+    return render_template("index.html", messages=messages)

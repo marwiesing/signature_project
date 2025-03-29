@@ -1,6 +1,9 @@
 from flask_migrate import upgrade
 from sqlalchemy import inspect, text
-from app import create_app, db
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.app import create_app, db
 
 REQUIRED_TABLES = ["alembic_version", "app_user", "chat", "message", "project"]  # adjust to your models
 

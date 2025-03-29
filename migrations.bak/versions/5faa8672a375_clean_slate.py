@@ -1,8 +1,8 @@
-"""Clean initial schema
+"""Clean slate
 
-Revision ID: fd25dee971a9
+Revision ID: 5faa8672a375
 Revises: 
-Create Date: 2025-03-26 11:53:52.426789
+Create Date: 2025-03-27 10:58:22.666063
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'fd25dee971a9'
+revision = '5faa8672a375'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -56,6 +56,7 @@ def upgrade():
     sa.PrimaryKeyConstraint('idmessage'),
     schema='chatbot_schema'
     )
+
     # ### end Alembic commands ###
 
 
