@@ -42,7 +42,7 @@ prepare-secret:
 # --- Step 3: Deploy secret.yaml to Kubernetes
 deploy-secret:
   stage: deploy
-  image: bitnami/kubectl:latest
+  image: lachlanevenson/k8s-kubectl:v1.27.1
   script:
   - echo -n "$GITLAB_PSQL_PASSWORD" | base64 > password.b64
   - export POSTGRES_PASSWORD_B64=$(cat password.b64)
