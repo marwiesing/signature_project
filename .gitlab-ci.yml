@@ -1,6 +1,7 @@
 stages:
 - test
 - prepare
+- deploy
 
 variables:
   DOCKER_DRIVER: overlay2
@@ -37,3 +38,13 @@ prepare-secret:
     paths:
     - manifests/postgres/secret.yaml
     expire_in: 1h
+
+# --- Step 3: Deploy secret.yaml to Kubernetes
+deploy-secret:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+  - echo -n "$GITLAB_PSQL_PASSWORD" | base64 > password.b64
+  - export POSTGRES_PASSWORD_B64=$(cat password.b64)
+  - envsubst < manifests/postgres/secret.template.yaml > secret.yaml
+  - kubectl apply -n chatbot -f secret.yaml
