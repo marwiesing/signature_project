@@ -35,3 +35,6 @@ k8s/*.tmp
 Thumbs.db
 
 .dockerignore
+
+manifests/postgres/secret.yaml
+
