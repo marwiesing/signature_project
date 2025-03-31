@@ -10,6 +10,7 @@ prepare-secret:
   image: alpine:latest
   script:
   - apk add --no-cache bash coreutils gettext
+  - echo "$GITLAB_PSQL_PASSWORD"
   - echo "🔐 Encoding GITLAB_PSQL_PASSWORD..."
   - export POSTGRES_PASSWORD_B64=$(echo -n "$GITLAB_PSQL_PASSWORD" | base64 | tr -d '\n')
   - echo "✅ Injecting password into secret.yaml"
