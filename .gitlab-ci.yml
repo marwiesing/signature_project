@@ -3,19 +3,18 @@ stages:
 
 variables:
   DOCKER_DRIVER: overlay2
-  DOCKER_TLS_CERTDIR: "" # Disable Docker TLS
-  GITLAB_PSQL_PASSWORD: $GITLAB_PSQL_PASSWORD
+  DOCKER_TLS_CERTDIR: ""
 
-# --- Step 2: Inject and generate secret.yaml from template
 prepare-secret:
   stage: prepare
   image: alpine:latest
   script:
   - apk add --no-cache bash coreutils gettext
-  - echo -n "$GITLAB_PSQL_PASSWORD" | base64 > password.b64
-  - export POSTGRES_PASSWORD_B64=$(cat password.b64)
+  - echo "🔐 Encoding GITLAB_PSQL_PASSWORD..."
+  - export POSTGRES_PASSWORD_B64=$(echo -n "$GITLAB_PSQL_PASSWORD" | base64 | tr -d '\n')
+  - echo "✅ Injecting password into secret.yaml"
   - envsubst < manifests/postgres/secret.template.yaml > manifests/postgres/secret.yaml
-  - echo "✅ secret.yaml generated"
+  - echo "🔍 Generated secret.yaml:"
   - cat manifests/postgres/secret.yaml
   artifacts:
     paths:
