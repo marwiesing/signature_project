@@ -60,10 +60,39 @@ class PostgresDatabaseConnection():
             except Exception as e:
                 print("Error while closing the connection", e)
 
+
+def execute_sql_file(connection, filepath):
+    """Reads a SQL file, splits it into statements, and executes them sequentially."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    sql_path = os.path.join(base_dir, filepath)
+    try:
+        with open(sql_path, "r") as file:
+            sql_content = file.read()
+            sql_statements = sp.split(sql_content)
+
+        with connection.cursor() as cursor:
+            for statement in sql_statements:
+                clean_statement = statement.strip()
+                if clean_statement:
+                    print(f"\n📄 Executing:\n{clean_statement}")
+                    cursor.execute(clean_statement)
+                    try:
+                        result = cursor.fetchall()
+                        for row in result:
+                            print(row)
+                    except psycopg2.ProgrammingError:
+                        # No results to fetch (e.g., for GRANT/ALTER)
+                        pass
+        connection.commit()
+    except Exception as e:
+        print("❌ Error while executing SQL file:", e)
+
+
 # Example usage
 if __name__ == "__main__":
     db = PostgresDatabaseConnection()
 
+    # Old:
     with db.connection.cursor() as cursor:
         print("\n🔹 PostgreSQL Current User:")
         cursor.execute("SELECT current_user;")
@@ -73,12 +102,12 @@ if __name__ == "__main__":
     query_roles = "SELECT rolname, rolsuper, rolcreatedb, rolcanlogin FROM pg_roles;"
     print(db.read_sql_query(query_roles))
 
-    print("\n🔹 Available Databases:")
-    query_databases = "SELECT datname FROM pg_database WHERE datistemplate = false;"
-    print(db.read_sql_query(query_databases))
+    # New:
+    if db.connection:
+        # Run the SQL file with checks
+        execute_sql_file(db.connection, "database_test.sql")
 
-    print("\n🔹 Verify the Privileges of chatbot_db:")
-    query_tables = "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';"
-    print(db.read_sql_query(query_tables))
+        db.disconnect()
+    else:
+        print("❌ Could not establish a connection to the database.") 
 
-    db.disconnect()
