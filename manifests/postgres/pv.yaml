@@ -11,5 +11,5 @@ spec:
   storageClassName: "manual"
   nfs:
     server: 192.168.0.100
-    path: "/mnt/pvc"
+    path: "/mnt/pvc/postgres"
     readOnly: false
