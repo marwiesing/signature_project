@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: chatbot
 
 resources:
-- ../../configs/postgres-configmap.yaml
-- ../../secrets/postgres-secret.yaml
 - deployment.yaml
 - service.yaml
+- configmap.yaml
+- secret.yaml
