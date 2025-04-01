@@ -3,7 +3,7 @@ from sqlalchemy import inspect, text
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.app import create_app, db
+from tests.dev.src.app import create_app, db
 
 REQUIRED_TABLES = ["alembic_version", "app_user", "chat", "message", "project"]  # adjust to your models
 

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: chatbot
+data:
+  db_host: "postgres-service"
+  db_name: "chatbot_db"
+  db_user: "chatbot_user"
+  db_port: "5432"

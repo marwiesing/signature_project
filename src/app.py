@@ -1,19 +1,26 @@
 from flask import Flask
-from flask_migrate import Migrate
 from src.config import config
-from src.models import db  # includes all models
+from src.models import db  
 from src.routes import bp
+import logging
 
-migrate = Migrate()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 def create_app():
     app = Flask(__name__)
+    
     app.config.from_object(config)
+    logger.info("Initializing Flask app...")
 
-    # Init DB + Migrations
     db.init_app(app)
-    migrate.init_app(app, db)
+    logger.info("SQLAlchemy initialized.")
 
     app.register_blueprint(bp)
+    logger.info("Blueprint registered.")
 
     return app
+
