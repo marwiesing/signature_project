@@ -49,7 +49,7 @@ if __name__ == "__main__":
         with engine.begin() as connection:
             if not schema_exists(connection):
                 logger.info("Schema does not exist. Creating schema and granting privileges...")
-                schema_sql = Path("src/sql/00_create_schema.sql").read_text()
+                schema_sql = Path("src/sql/create_schema.sql").read_text()
                 connection.execute(text(schema_sql))
                 logger.info("✅ Schema created and privileges granted.")
             else:
