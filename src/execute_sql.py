@@ -64,6 +64,16 @@ if __name__ == "__main__":
                 connection.execute(text(sql))
                 logger.info("✅ Tables created successfully.")
 
+            user_exists = connection.execute(text("SELECT 1 FROM chatbot_schema.app_user WHERE idappuser = 1")).fetchone()
+            if not user_exists:
+                logger.info("Inserting default admin user...")
+                connection.execute(text("""
+                    INSERT INTO chatbot_schema.app_user (idappuser, username, password)
+                    VALUES (1, 'admin', 'admin123')
+                """))
+                logger.info("✅ Default admin user inserted.")
+
+
         logger.info("Schema initialization completed.")
 
     except Exception as e:
