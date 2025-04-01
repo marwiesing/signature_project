@@ -4,7 +4,7 @@ metadata:
   name: postgres-config
   namespace: chatbot
 data:
-  db_host: "postgres-service"
-  db_name: "chatbot_db"
-  db_user: "chatbot_user"
-  db_port: "5432"
+  PSQL_HOST: postgres-service
+  PSQL_DB: chatbot_db
+  PSQL_USER: chatbot_user
+  PSQL_PORT: "5432"
