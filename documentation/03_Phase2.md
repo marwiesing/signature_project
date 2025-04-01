@@ -152,9 +152,9 @@ But for now, you can **run the init once inside your app container**.
 1. [✅] Create/verify working Dockerfile 
 2. [✅] Push to GitLab and verify registry setup
 3. [✅] Add `.gitlab-ci.yml` to build and push
-4. [ ] Write `deployment.yaml` and reference image
-5. [ ] Complete `kustomization.yaml`
-6. [ ] Trigger ArgoCD to deploy
+4. [✅] Write `deployment.yaml` and reference image
+5. [✅] Complete `kustomization.yaml`
+6. [✅] Trigger ArgoCD to deploy
 7. [ ] Use `kubectl logs` to verify `execute.py` + app
 
 ---
