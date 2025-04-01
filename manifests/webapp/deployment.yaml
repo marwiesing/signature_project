@@ -25,7 +25,7 @@ spec:
         - configMapRef:
             name: postgres-config
         - secretRef:
-            name: postgres-secret
+            name: webapp-secret
         readinessProbe:
           httpGet:
             path: /
