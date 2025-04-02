@@ -36,6 +36,6 @@ Thumbs.db
 
 .dockerignore
 
-# manifests/postgres/secret.yaml
+manifests/webapp/secret.yaml
 
 archive/

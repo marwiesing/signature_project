@@ -21,5 +21,10 @@ build:
   - echo "Pushing Docker image to registry..."
   - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
   - docker push $IMAGE_NAME:latest
+  ###################
+  - echo "🔐 Generating Kubernetes Secret from template..."
+  - envsubst < manifests/webapp/secret.yaml.template > manifests/webapp/secret.yaml
+  - echo "✅ Secret manifest ready for ArgoCD sync"
+  ###################
   only:
   - main

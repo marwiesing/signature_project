@@ -155,7 +155,7 @@ But for now, you can **run the init once inside your app container**.
 4. [✅] Write `deployment.yaml` and reference image
 5. [✅] Complete `kustomization.yaml`
 6. [✅] Trigger ArgoCD to deploy
-7. [ ] Use `kubectl logs` to verify `execute.py` + app
+7. [✅] Use `kubectl logs` to verify `execute.py` + app
 
 ---
 
