@@ -27,7 +27,6 @@ build:
   - echo "🔐 Generating Kubernetes Secret from template..."
   - envsubst < manifests/webapp/secret.yaml.template > manifests/webapp/secret.yaml
   - echo "✅ Secret manifest ready for ArgoCD sync"
-  - cat manifests/webapp/secret.yaml
   ###################
   only:
   - main
