@@ -1,12 +1,11 @@
-from flask import Blueprint, request, render_template, redirect, session, flash, g
-from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+from flask import Blueprint, request, render_template, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
+from tests.dev.src.db.db_utils import PostgresDatabaseConnection
 
-
-bp = Blueprint("main", __name__)
+auth_bp = Blueprint("auth", __name__)
 db = PostgresDatabaseConnection()
 
-@bp.route("/", methods=["GET", "POST"])
+@auth_bp.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form.get("username")
@@ -34,7 +33,7 @@ def login():
     return render_template("login.html")
 
 
-@bp.route("/register", methods=["GET", "POST"])
+@auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         username = request.form.get("username")
@@ -58,47 +57,8 @@ def register():
 
     return render_template("register.html")
 
-def login_required(f):
-    from functools import wraps
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        if "user_id" not in session:
-            flash("Please log in", "danger")
-            return redirect("/")
-        g.user_id = session["user_id"]
-        return f(*args, **kwargs)
-    return wrapper
 
-@bp.route("/chat", methods=["GET", "POST"])
-@login_required
-def chat():
-    user_id = session["user_id"]
-
-    if request.method == "POST":
-        content = request.form.get("content")
-        if content:
-            db.execute_query("INSERT INTO chatbot_schema.chat (user_id) VALUES (%s);", (user_id,))
-            chat_id_result = db.read_sql_query("SELECT MAX(idchat) FROM chatbot_schema.chat WHERE user_id = %s;", (user_id,))
-            chat_id = chat_id_result[0][0]
-
-            db.execute_query("""
-                INSERT INTO chatbot_schema.message (chat_id, sender, content)
-                VALUES (%s, 'user', %s);
-            """, (chat_id, content))
-
-        return redirect("/chat")
-
-    messages_df = db.read_sql_query("""
-        SELECT m.content, m.timestamp 
-        FROM chatbot_schema.message m
-        JOIN chatbot_schema.chat c ON m.chat_id = c.idchat
-        WHERE c.user_id = %s
-        ORDER BY m.timestamp DESC;
-    """, (user_id,))
-
-    return render_template("chat.html", messages=messages_df or [])
-
-@bp.route("/logout")
+@auth_bp.route("/logout")
 def logout():
     session.clear()
     flash("Logged out", "info")

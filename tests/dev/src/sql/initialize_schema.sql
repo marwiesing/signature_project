@@ -1,41 +1,56 @@
--- Schema: chatbot_schema
+-- Creates all chatbot tables in one go
 
---- #  psql -h $PSQL_HOST -U $PSQL_USER -d $PSQL_DB -f src/sql/initialize_schema.sql  -W
-
+-- === USER TABLE ===
 CREATE TABLE chatbot_schema.app_user (
-    idappuser SERIAL NOT NULL, 
-    username VARCHAR(50) NOT NULL, 
-    password VARCHAR(50) NOT NULL, 
-    created_at TIMESTAMP WITHOUT TIME ZONE, 
-    PRIMARY KEY (idappuser), 
-    UNIQUE (username)
+    idappuser SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- === ROLE & USER_ROLE ===
+CREATE TABLE chatbot_schema.role (
+    idrole SERIAL PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
+);
+
+CREATE TABLE chatbot_schema.user_role (
+    iduserrole SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES chatbot_schema.app_user(idappuser) ON DELETE CASCADE,
+    role_id INTEGER NOT NULL REFERENCES chatbot_schema.role(idrole) ON DELETE CASCADE,
+    assigned_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for faster role lookup
+CREATE INDEX idx_user_role_user ON chatbot_schema.user_role (user_id);
+CREATE INDEX idx_user_role_role ON chatbot_schema.user_role (role_id);
+
+-- === PROJECTS ===
 CREATE TABLE chatbot_schema.project (
-    idproject SERIAL NOT NULL, 
-    name VARCHAR(100) NOT NULL, 
-    description TEXT, 
-    created_at TIMESTAMP WITHOUT TIME ZONE, 
-    PRIMARY KEY (idproject), 
-    UNIQUE (name)
+    idproject SERIAL PRIMARY KEY,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- === CHATS ===
 CREATE TABLE chatbot_schema.chat (
-    idchat SERIAL NOT NULL, 
-    user_id INTEGER NOT NULL, 
-    project_id INTEGER, 
-    created_at TIMESTAMP WITHOUT TIME ZONE, 
-    PRIMARY KEY (idchat), 
-    FOREIGN KEY(project_id) REFERENCES chatbot_schema.project (idproject), 
-    FOREIGN KEY(user_id) REFERENCES chatbot_schema.app_user (idappuser)
+    idchat SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES chatbot_schema.app_user(idappuser),
+    project_id INTEGER REFERENCES chatbot_schema.project(idproject),
+    name VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- === MESSAGES ===
 CREATE TABLE chatbot_schema.message (
-    idmessage SERIAL NOT NULL, 
-    chat_id INTEGER NOT NULL, 
-    sender VARCHAR(10), 
-    content TEXT NOT NULL, 
-    timestamp TIMESTAMP WITHOUT TIME ZONE, 
-    PRIMARY KEY (idmessage), 
-    FOREIGN KEY(chat_id) REFERENCES chatbot_schema.chat (idchat)
+    idmessage SERIAL PRIMARY KEY,
+    chat_id INTEGER NOT NULL REFERENCES chatbot_schema.chat(idchat),
+    content TEXT NOT NULL,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- === DEFAULT ROLES ===
+INSERT INTO chatbot_schema.role (name) VALUES ('Admin'), ('User');
+INSERT INTO chatbot_schema.app_user (username, password) VALUES ('admin', 'admin123');
+INSERT INTO chatbot_schema.user_role (user_id, role_id) VALUES (1, 1);
