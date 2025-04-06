@@ -25,14 +25,20 @@ def get_sidebar_data(user_id):
 
     if hasattr(project_df, "empty") and not project_df.empty:
         for _, row in project_df.iterrows():
-            project_id, name = row.idproject, row.name
+            project_id, name = row['idproject'], row['name']
             chats_df = db.read_sql_query("""
                 SELECT idchat, name FROM chatbot_schema.chat
                 WHERE user_id = %s AND project_id = %s
                 ORDER BY created_at DESC;
             """, (user_id, project_id))
 
-            chats = chats_df if isinstance(chats_df, list) else []
+            if hasattr(chats_df, "to_dict"):
+                chats = chats_df.to_dict("records")
+            elif isinstance(chats_df, list):
+                chats = [{"idchat": row[0], "name": row[1]} for row in chats_df]
+            else:
+                chats = []
+
             sidebar_projects.append({
                 "idproject": project_id,
                 "name": name,
@@ -44,9 +50,18 @@ def get_sidebar_data(user_id):
         WHERE user_id = %s AND project_id IS NULL
         ORDER BY created_at DESC;
     """, (user_id,))
-    unassigned_chats = unassigned_df.to_dict("records") if hasattr(unassigned_df, "to_dict") else []
+    
+    if hasattr(unassigned_df, "to_dict"):
+        unassigned_chats = unassigned_df.to_dict("records")
+    elif isinstance(unassigned_df, list):
+        unassigned_chats = [{"idchat": row[0], "name": row[1]} for row in unassigned_df]
+    else:
+        unassigned_chats = []
 
+    print("[DEBUG] unassigned_chats:", unassigned_chats)
     return sidebar_projects, unassigned_chats
+
+
 
 @chat_bp.route("/chat")
 @login_required

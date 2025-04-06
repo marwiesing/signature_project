@@ -39,17 +39,17 @@
                     <ul class="list-unstyled ps-3">
                         {% for chat in project.chats %}
                             <li class="d-flex justify-content-between align-items-center">
-                                <a href="/chat/{{ chat.idchat }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
+                                <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
                                 <details class="dropdown">
                                     <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
                                     <div class="dropdown-menu d-block shadow p-2 mt-1">
                                         <!-- Rename -->
-                                        <form method="POST" action="/chat/{{ chat.idchat }}/rename" class="mb-2">
+                                        <form method="POST" action="/chat/{{ chat.get('idchat') }}/rename" class="mb-2">
                                             <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
                                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                                         </form>
                                         <!-- Assign -->
-                                        <form method="POST" action="/chat/{{ chat.idchat }}/assign" class="mb-2">
+                                        <form method="POST" action="/chat/{{ chat.get('idchat') }}/assign" class="mb-2">
                                             <select name="project_id" class="form-select form-select-sm mb-1">
                                                 {% for proj in sidebar_projects %}
                                                     <option value="{{ proj.idproject }}">{{ proj.name }}</option>
@@ -58,11 +58,11 @@
                                             <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
                                         </form>
                                         <!-- Remove -->
-                                        <form method="POST" action="/chat/{{ chat.idchat }}/remove" class="mb-2">
+                                        <form method="POST" action="/chat/{{ chat.get('idchat') }}/remove" class="mb-2">
                                             <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
                                         </form>
                                         <!-- Delete -->
-                                        <form method="POST" action="/chat/{{ chat.idchat }}/delete">
+                                        <form method="POST" action="/chat/{{ chat.get('idchat') }}/delete">
                                             <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
                                         </form>
                                     </div>
@@ -75,43 +75,45 @@
         {% endfor %}
 
         {% if unassigned_chats %}
-            <hr>
-            <strong>🗂 Others</strong>
-            <ul class="list-unstyled ps-3">
-                {% for chat in unassigned_chats %}
-                    <li class="d-flex justify-content-between align-items-center">
-                        <a href="/chat/{{ chat.idchat }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
-                        <details class="dropdown">
-                            <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
-                            <div class="dropdown-menu d-block shadow p-2 mt-1">
-                                <!-- Rename -->
-                                <form method="POST" action="/chat/{{ chat.idchat }}/rename" class="mb-2">
-                                    <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
-                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
-                                </form>
-                                <!-- Assign -->
-                                <form method="POST" action="/chat/{{ chat.idchat }}/assign" class="mb-2">
-                                    <select name="project_id" class="form-select form-select-sm mb-1">
-                                        {% for proj in sidebar_projects %}
-                                            <option value="{{ proj.idproject }}">{{ proj.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
-                                </form>
-                                <!-- Remove -->
-                                <form method="POST" action="/chat/{{ chat.idchat }}/remove" class="mb-2">
-                                    <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
-                                </form>
-                                <!-- Delete -->
-                                <form method="POST" action="/chat/{{ chat.idchat }}/delete">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
-                                </form>
-                            </div>
-                        </details>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <hr>
+        <strong>🗂 Others</strong>
+        <ul class="list-unstyled ps-3">
+            {% for chat in unassigned_chats %}
+                <li class="d-flex justify-content-between align-items-center">
+                    <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">
+                        {{ chat.get('name') or "Untitled Chat" }}
+                    </a>
+                    <details class="dropdown">
+                        <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
+                        <div class="dropdown-menu d-block shadow p-2 mt-1">
+                            <!-- Rename -->
+                            <form method="POST" action="/chat/{{ chat.get('idchat') }}/rename" class="mb-2">
+                                <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                                <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
+                            </form>
+                            <!-- Assign -->
+                            <form method="POST" action="/chat/{{ chat.get('idchat') }}/assign" class="mb-2">
+                                <select name="project_id" class="form-select form-select-sm mb-1">
+                                    {% for proj in sidebar_projects %}
+                                        <option value="{{ proj.idproject }}">{{ proj.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
+                            </form>
+                            <!-- Remove -->
+                            <form method="POST" action="/chat/{{ chat.get('idchat') }}/remove" class="mb-2">
+                                <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
+                            </form>
+                            <!-- Delete -->
+                            <form method="POST" action="/chat/{{ chat.get('idchat') }}/delete">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                            </form>
+                        </div>
+                    </details>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}    
     </div>
     {% endif %}
 
