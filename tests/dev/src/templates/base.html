@@ -5,76 +5,118 @@
     <title>{% block title %}Chatbot{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     
-    <!-- Bootstrap 5 -->
+    <!-- Bootstrap 5 CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <style>
-        body {
-            overflow: hidden;
-        }
-
-        .sidebar {
-            height: 100vh;
-            overflow-y: auto;
-            background-color: #f8f9fa;
-            padding: 1rem;
-            border-right: 1px solid #dee2e6;
-        }
-
-        .sidebar .folder-toggle {
-            cursor: pointer;
-        }
-
-        .sidebar .chat-link {
-            padding-left: 1rem;
-            font-size: 0.95rem;
-        }
-
-        .sidebar .chat-link:hover {
-            text-decoration: underline;
-        }
-
-        .content-area {
-            height: 100vh;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-    </style>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
-<div class="d-flex">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
+    <a class="navbar-brand" href="/chat">🧠 Chatbot</a>
+    <div class="ms-auto">
+        {% if session['username'] %}
+            <span class="navbar-text me-3">Logged in as <strong>{{ session['username'] }}</strong></span>
+            <a class="btn btn-outline-light btn-sm" href="/logout">Logout</a>
+        {% endif %}
+    </div>
+</nav>
+
+<div class="d-flex flex-grow-1">
     <!-- Sidebar -->
-    <aside class="sidebar col-3">
-        <h5>📁 Projects</h5>
-        <div id="projectList">
-            {% if folders %}
-                {% for folder in folders %}
-                    <div class="mb-2">
-                        <div class="folder-toggle fw-bold" data-bs-toggle="collapse" href="#project-{{ folder.idproject }}">
-                            📂 {{ folder.name }}
-                        </div>
-                        <div class="collapse show" id="project-{{ folder.idproject }}">
-                            {% for chat in folder.chats %}
-                                <div class="chat-link">
-                                    <a href="{{ url_for('chat.chat_by_id', chat_id=chat.idchat) }}">{{ chat.name or "Untitled Chat" }}</a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
+    {% if show_chat_sidebar %}
+    <div class="bg-light border-end p-3" style="min-width: 260px; max-width: 300px;">
+            <a href="/projects" class="btn btn-sm btn-outline-primary w-100 mb-2">+ New Project</a>
+            <a href="/chat/new" class="btn btn-sm btn-outline-success w-100 mb-3">+ New Chat</a>
+
+        {% for project in sidebar_projects %}
+            <div class="mb-2">
+                <button class="btn btn-link w-100 text-start" data-bs-toggle="collapse" data-bs-target="#project-{{ project.idproject }}">
+                    📁 {{ project.name }}
+                </button>
+                <div class="collapse show" id="project-{{ project.idproject }}">
+                    <ul class="list-unstyled ps-3">
+                        {% for chat in project.chats %}
+                            <li class="d-flex justify-content-between align-items-center">
+                                <a href="/chat/{{ chat.idchat }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
+                                <details class="dropdown">
+                                    <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
+                                    <div class="dropdown-menu d-block shadow p-2 mt-1">
+                                        <!-- Rename -->
+                                        <form method="POST" action="/chat/{{ chat.idchat }}/rename" class="mb-2">
+                                            <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
+                                        </form>
+                                        <!-- Assign -->
+                                        <form method="POST" action="/chat/{{ chat.idchat }}/assign" class="mb-2">
+                                            <select name="project_id" class="form-select form-select-sm mb-1">
+                                                {% for proj in sidebar_projects %}
+                                                    <option value="{{ proj.idproject }}">{{ proj.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
+                                        </form>
+                                        <!-- Remove -->
+                                        <form method="POST" action="/chat/{{ chat.idchat }}/remove" class="mb-2">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
+                                        </form>
+                                        <!-- Delete -->
+                                        <form method="POST" action="/chat/{{ chat.idchat }}/delete">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                        </form>
+                                    </div>
+                                </details>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if unassigned_chats %}
+            <hr>
+            <strong>🗂 Others</strong>
+            <ul class="list-unstyled ps-3">
+                {% for chat in unassigned_chats %}
+                    <li class="d-flex justify-content-between align-items-center">
+                        <a href="/chat/{{ chat.idchat }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
+                        <details class="dropdown">
+                            <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
+                            <div class="dropdown-menu d-block shadow p-2 mt-1">
+                                <!-- Rename -->
+                                <form method="POST" action="/chat/{{ chat.idchat }}/rename" class="mb-2">
+                                    <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                                    <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
+                                </form>
+                                <!-- Assign -->
+                                <form method="POST" action="/chat/{{ chat.idchat }}/assign" class="mb-2">
+                                    <select name="project_id" class="form-select form-select-sm mb-1">
+                                        {% for proj in sidebar_projects %}
+                                            <option value="{{ proj.idproject }}">{{ proj.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
+                                </form>
+                                <!-- Remove -->
+                                <form method="POST" action="/chat/{{ chat.idchat }}/remove" class="mb-2">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
+                                </form>
+                                <!-- Delete -->
+                                <form method="POST" action="/chat/{{ chat.idchat }}/delete">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                </form>
+                            </div>
+                        </details>
+                    </li>
                 {% endfor %}
-            {% else %}
-                <p>No projects yet.</p>
-            {% endif %}
-        </div>
-        <hr>
-        <a href="/chat" class="btn btn-sm btn-primary w-100 mb-2">➕ New Chat</a>
-        <a href="/projects" class="btn btn-sm btn-outline-secondary w-100">Manage Projects</a>
-    </aside>
+            </ul>
+        {% endif %}
+    </div>
+    {% endif %}
 
     <!-- Main Content -->
-    <main class="content-area col-9">
-        <!-- Flash messages -->
+    <main class="container-fluid p-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -90,12 +132,11 @@
     </main>
 </div>
 
-<!-- Footer -->
-<footer class="bg-dark text-white text-center py-2 mt-auto small">
-    <small>© 2025 Chatbot Project · Powered by Flask, PostgreSQL & Bootstrap</small>
+<footer class="bg-dark text-white text-center py-3 mt-auto">
+    <small>© 2025 Chatbot Project</small>
 </footer>
 
-<!-- JS -->
+<!-- Bootstrap Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

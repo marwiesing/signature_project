@@ -52,5 +52,3 @@ CREATE TABLE chatbot_schema.message (
 
 -- === DEFAULT ROLES ===
 INSERT INTO chatbot_schema.role (name) VALUES ('Admin'), ('User');
-INSERT INTO chatbot_schema.app_user (username, password) VALUES ('admin', 'admin123');
-INSERT INTO chatbot_schema.user_role (user_id, role_id) VALUES (1, 1);
