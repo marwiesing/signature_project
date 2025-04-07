@@ -38,7 +38,7 @@ CREATE TABLE chatbot_schema.project (
 CREATE TABLE chatbot_schema.chat (
     idchat SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES chatbot_schema.app_user(idappuser),
-    project_id INTEGER REFERENCES chatbot_schema.project(idproject),
+    project_id INTEGER REFERENCES chatbot_schema.project(idproject) ON DELETE CASCADE,
     name VARCHAR(100),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,7 +46,7 @@ CREATE TABLE chatbot_schema.chat (
 -- === MESSAGES ===
 CREATE TABLE chatbot_schema.message (
     idmessage SERIAL PRIMARY KEY,
-    chat_id INTEGER NOT NULL REFERENCES chatbot_schema.chat(idchat),
+    chat_id INTEGER NOT NULL REFERENCES chatbot_schema.chat(idchat) ON DELETE CASCADE,
     content TEXT NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

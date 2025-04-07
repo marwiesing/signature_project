@@ -100,6 +100,7 @@ def update_description(project_id):
 @login_required
 def delete_project(project_id):
     user_id = session["user_id"]
+    # Delete messages → chats → project (cascading manually)
     db.execute_query(
         """
         DELETE FROM chatbot_schema.project
@@ -107,5 +108,5 @@ def delete_project(project_id):
         """,
         (project_id, user_id),
     )
-    flash("Project deleted (and associated chats).", "danger")
+    flash("Project deleted along with its chats and messages.", "danger")
     return redirect("/projects")
