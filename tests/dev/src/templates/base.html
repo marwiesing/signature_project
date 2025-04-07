@@ -30,25 +30,55 @@
             <a href="/projects" class="btn btn-sm btn-outline-primary w-100 mb-2">+ New Project</a>
             <a href="/chat/new" class="btn btn-sm btn-outline-success w-100 mb-3">+ New Chat</a>
 
-        {% for project in sidebar_projects %}
+            {% for project in sidebar_projects %}
             <div class="mb-2">
-                <button class="btn btn-link w-100 text-start" data-bs-toggle="collapse" data-bs-target="#project-{{ project.idproject }}">
-                    📁 {{ project.name }}
-                </button>
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Project name with tooltip -->
+                    <button class="btn btn-link w-100 text-start text-truncate" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#project-{{ project.idproject }}"
+                            title="{{ project.description or 'No description' }}">
+                        📁 {{ project.name }}
+                    </button>
+                    <!-- Project dropdown (⋮) -->
+                    <details class="dropdown text-end ms-1">
+                        <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
+                        <div class="dropdown-menu d-block shadow p-2 mt-1">
+                            <!-- Rename -->
+                            <form method="POST" action="/projects/{{ project.idproject }}/rename" class="mb-2">
+                                <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                                <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
+                            </form>
+                            <!-- Update description -->
+                            <form method="POST" action="/projects/{{ project.idproject }}/update_desc" class="mb-2">
+                                <input type="text" name="new_description" placeholder="New description" class="form-control form-control-sm mb-1">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary w-100">Update Desc</button>
+                            </form>
+                            <!-- Delete -->
+                            <form method="POST" action="/projects/{{ project.idproject }}/delete" 
+                                  onsubmit="return confirm('⚠️ Delete project and all its chats/messages?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                            </form>
+                        </div>
+                    </details>
+                </div>
+            
+                <!-- Collapsible chat list -->
                 <div class="collapse show" id="project-{{ project.idproject }}">
                     <ul class="list-unstyled ps-3">
                         {% for chat in project.chats %}
                             <li class="d-flex justify-content-between align-items-center">
-                                <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">{{ chat.name or "Untitled Chat" }}</a>
+                                <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">
+                                    {{ chat.get('name') or "Untitled Chat" }}
+                                </a>
                                 <details class="dropdown">
                                     <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
                                     <div class="dropdown-menu d-block shadow p-2 mt-1">
-                                        <!-- Rename -->
+                                        <!-- Chat Actions: Rename / Assign / Remove / Delete -->
                                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/rename" class="mb-2">
                                             <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
                                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                                         </form>
-                                        <!-- Assign -->
                                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/assign" class="mb-2">
                                             <select name="project_id" class="form-select form-select-sm mb-1">
                                                 {% for proj in sidebar_projects %}
@@ -57,11 +87,9 @@
                                             </select>
                                             <button type="submit" class="btn btn-sm btn-outline-success w-100">Assign</button>
                                         </form>
-                                        <!-- Remove -->
                                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/remove" class="mb-2">
                                             <button type="submit" class="btn btn-sm btn-outline-warning w-100">Remove from Project</button>
                                         </form>
-                                        <!-- Delete -->
                                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/delete">
                                             <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
                                         </form>
@@ -72,7 +100,8 @@
                     </ul>
                 </div>
             </div>
-        {% endfor %}
+            {% endfor %}
+            
 
         {% if unassigned_chats %}
         <hr>

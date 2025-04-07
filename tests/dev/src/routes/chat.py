@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+import pandas as pd
 
 chat_bp = Blueprint("chat", __name__)
 db = PostgresDatabaseConnection()
@@ -15,50 +16,72 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
+# Improved version with logging:
 def get_sidebar_data(user_id):
     sidebar_projects = []
 
-    project_df = db.read_sql_query("""
-        SELECT idproject, name FROM chatbot_schema.project
+    # Read projects
+    project_data = db.read_sql_query("""
+        SELECT idproject, name, description
+        FROM chatbot_schema.project
+        WHERE user_id = %s
         ORDER BY created_at DESC;
-    """)
+    """, (user_id,))
 
-    if hasattr(project_df, "empty") and not project_df.empty:
+    # Normalize to DataFrame
+    if isinstance(project_data, list):
+        project_df = pd.DataFrame(project_data, columns=["idproject", "name", "description"])
+    else:
+        project_df = project_data
+
+    print("[DEBUG] project_df:", project_df)
+
+    if project_df is not None and not project_df.empty:
         for _, row in project_df.iterrows():
-            project_id, name = row['idproject'], row['name']
+            project_id = row["idproject"]
+            name = row["name"]
+            description = row.get("description") or ""
+
             chats_df = db.read_sql_query("""
                 SELECT idchat, name FROM chatbot_schema.chat
                 WHERE user_id = %s AND project_id = %s
                 ORDER BY created_at DESC;
             """, (user_id, project_id))
 
+            print(f"[DEBUG] Chats for project {name}:", chats_df)
+
+            chats = []
             if hasattr(chats_df, "to_dict"):
                 chats = chats_df.to_dict("records")
             elif isinstance(chats_df, list):
                 chats = [{"idchat": row[0], "name": row[1]} for row in chats_df]
-            else:
-                chats = []
 
             sidebar_projects.append({
                 "idproject": project_id,
                 "name": name,
+                "description": description,
                 "chats": chats
             })
+    else:
+        print("[DEBUG] No projects found for user_id =", user_id)
 
+    # Unassigned chats
     unassigned_df = db.read_sql_query("""
         SELECT idchat, name FROM chatbot_schema.chat
         WHERE user_id = %s AND project_id IS NULL
         ORDER BY created_at DESC;
     """, (user_id,))
-    
-    if hasattr(unassigned_df, "to_dict"):
-        unassigned_chats = unassigned_df.to_dict("records")
-    elif isinstance(unassigned_df, list):
+
+    if isinstance(unassigned_df, list):
         unassigned_chats = [{"idchat": row[0], "name": row[1]} for row in unassigned_df]
+    elif hasattr(unassigned_df, "to_dict"):
+        unassigned_chats = unassigned_df.to_dict("records")
     else:
         unassigned_chats = []
 
-    print("[DEBUG] unassigned_chats:", unassigned_chats)
+    print("[DEBUG] Final sidebar_projects:", sidebar_projects)
+    print("[DEBUG] Final unassigned_chats:", unassigned_chats)
+    
     return sidebar_projects, unassigned_chats
 
 

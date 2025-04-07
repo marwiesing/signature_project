@@ -30,6 +30,7 @@ CREATE TABLE chatbot_schema.project (
     idproject SERIAL PRIMARY KEY,
     name VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
+    user_id INTEGER NOT NULL REFERENCES chatbot_schema.app_user(idappuser) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
