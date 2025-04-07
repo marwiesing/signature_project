@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.db.db_utils import PostgresDatabaseConnection
 from tests.dev.src.routes.chat import get_sidebar_data
+import pandas as pd
 
 project_bp = Blueprint("project", __name__)
 db = PostgresDatabaseConnection()
@@ -110,3 +111,50 @@ def delete_project(project_id):
     )
     flash("Project deleted along with its chats and messages.", "danger")
     return redirect("/projects")
+
+@project_bp.route("/projects/<int:project_id>")
+@login_required
+def project_detail(project_id):
+    user_id = session["user_id"]
+    print(f"[DEBUG] session user_id = {user_id}, project_id = {project_id}")
+
+    project_df = db.read_sql_query("""
+        SELECT idproject, name, description, created_at
+        FROM chatbot_schema.project
+        WHERE idproject = %s AND user_id = %s;
+    """, (project_id, user_id))
+    print("[DEBUG] raw project_df =", project_df)
+
+    # Ensure it's a DataFrame
+    if isinstance(project_df, list):
+        project_df = pd.DataFrame(project_df, columns=["idproject", "name", "description", "created_at"])
+
+    project_records = project_df.to_dict("records") if hasattr(project_df, "to_dict") else []
+
+    print(f"[DEBUG] project_records = {project_records}")
+
+    if not project_records:
+        flash("Project not found or unauthorized", "danger")
+        return redirect("/projects")
+
+
+    project = project_records[0]
+
+    chats_df = db.read_sql_query("""
+        SELECT idchat, name, created_at
+        FROM chatbot_schema.chat
+        WHERE project_id = %s AND user_id = %s
+        ORDER BY created_at DESC;
+    """, (project_id, user_id))
+
+    chats = chats_df.to_dict("records") if hasattr(chats_df, "to_dict") else []
+
+    sidebar_projects, unassigned_chats = get_sidebar_data(user_id)
+
+    return render_template("project_detail.html",
+        project=project,
+        chats=chats,
+        sidebar_projects=sidebar_projects,
+        unassigned_chats=unassigned_chats,
+        show_chat_sidebar=True
+    )

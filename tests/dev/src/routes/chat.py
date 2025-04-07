@@ -84,8 +84,6 @@ def get_sidebar_data(user_id):
     
     return sidebar_projects, unassigned_chats
 
-
-
 @chat_bp.route("/chat")
 @login_required
 def chat():
@@ -149,10 +147,12 @@ def chat_view(chat_id):
 @login_required
 def chat_new():
     user_id = session["user_id"]
+    project_id = request.args.get("project_id")  # Optional
+
     db.execute_query("""
-        INSERT INTO chatbot_schema.chat (user_id, name)
-        VALUES (%s, %s);
-    """, (user_id, "Untitled Chat"))
+        INSERT INTO chatbot_schema.chat (user_id, name, project_id)
+        VALUES (%s, %s, %s);
+    """, (user_id, "Untitled Chat", project_id if project_id else None))
 
     result = db.read_sql_query("""
         SELECT idchat FROM chatbot_schema.chat
