@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.db.db_utils import PostgresDatabaseConnection
-from tests.dev.src.validator import Validator
+from tests.dev.src.utils.validator import Validator
 import pandas as pd
 
 chat_bp = Blueprint("chat", __name__)
