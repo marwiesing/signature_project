@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+from tests.dev.src.validator import Validator
 import pandas as pd
 
 chat_bp = Blueprint("chat", __name__)
@@ -116,14 +117,19 @@ def chat_view(chat_id):
     session["chat_id"] = chat_id
 
     if request.method == "POST":
-        content = request.form.get("content")
-        if content:
-            db.execute_query("""
-                INSERT INTO chatbot_schema.message (chat_id, content)
-                VALUES (%s, %s);
-            """, (chat_id, content))
-        return redirect(f"/chat/{chat_id}")
+        result = Validator.check([
+            (request.form.get("content"), "Message", 5000, True)
+        ])
+        if not result:
+            return redirect(f"/chat/{chat_id}")
 
+        content = result[0]
+        db.execute_query("""
+            INSERT INTO chatbot_schema.message (chat_id, content)
+            VALUES (%s, %s);
+        """, (chat_id, content))
+        return redirect(f"/chat/{chat_id}")
+    
     messages = db.read_sql_query("""
         SELECT content, timestamp
         FROM chatbot_schema.message
@@ -170,28 +176,40 @@ def chat_new():
 @chat_bp.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
 def rename_chat(chat_id):
-    new_name = request.form.get("new_name")
-    if new_name:
-        db.execute_query("""
-            UPDATE chatbot_schema.chat
-            SET name = %s
-            WHERE idchat = %s;
-        """, (new_name, chat_id))
-        flash("Chat renamed.", "success")
+    result = Validator.check([
+        (request.form.get("new_name"), "Chat name", 100, True)
+    ])
+    if not result:
+        return redirect(f"/chat/{chat_id}")
+
+    new_name = result[0]
+    db.execute_query("""
+        UPDATE chatbot_schema.chat
+        SET name = %s
+        WHERE idchat = %s;
+    """, (new_name, chat_id))
+    flash("Chat renamed.", "success")
     return redirect(f"/chat/{chat_id}")
+
 
 @chat_bp.route("/chat/<int:chat_id>/assign", methods=["POST"])
 @login_required
 def assign_to_project(chat_id):
-    project_id = request.form.get("project_id")
-    if project_id:
-        db.execute_query("""
-            UPDATE chatbot_schema.chat
-            SET project_id = %s
-            WHERE idchat = %s;
-        """, (project_id, chat_id))
-        flash("Chat assigned to project.", "success")
+    result = Validator.check([
+        (request.form.get("project_id"), "Project ID", 10, True)
+    ])
+    if not result:
+        return redirect(f"/chat/{chat_id}")
+
+    project_id = result[0]
+    db.execute_query("""
+        UPDATE chatbot_schema.chat
+        SET project_id = %s
+        WHERE idchat = %s;
+    """, (project_id, chat_id))
+    flash("Chat assigned to project.", "success")
     return redirect(f"/chat/{chat_id}")
+
 
 @chat_bp.route("/chat/<int:chat_id>/remove", methods=["POST"])
 @login_required

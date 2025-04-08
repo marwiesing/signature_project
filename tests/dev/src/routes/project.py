@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.db.db_utils import PostgresDatabaseConnection
 from tests.dev.src.routes.chat import get_sidebar_data
+from  tests.dev.src.validator import Validator
 import pandas as pd
 
 project_bp = Blueprint("project", __name__)
@@ -51,35 +52,52 @@ def view_projects():
 @project_bp.route("/projects/create", methods=["POST"])
 @login_required
 def create_project():
-    name = request.form.get("name")
-    description = request.form.get("description", "")
+    result = Validator.check([
+        (request.form.get("name"), "Project name", 100, True),
+        (request.form.get("description", ""), "Description", 500, False)
+    ])
+    if not result:
+        return redirect("/projects")
+
+    name, description = result
     user_id = session["user_id"]
-    if name:
-        db.execute_query("""
-            INSERT INTO chatbot_schema.project (name, description, user_id)
-            VALUES (%s, %s, %s);
-        """, (name, description, user_id))
-        flash("Project created", "success")
+
+    db.execute_query("""
+        INSERT INTO chatbot_schema.project (name, description, user_id)
+        VALUES (%s, %s, %s);
+    """, (name, description, user_id))
+    flash("Project created", "success")
     return redirect("/projects")
 
 @project_bp.route("/projects/<int:project_id>/rename", methods=["POST"])
 @login_required
 def rename_project(project_id):
-    new_name = request.form.get("new_name")
+    result = Validator.check([
+        (request.form.get("new_name"), "New project name", 100, True)
+    ])
+    if not result:
+        return redirect("/projects")
+
+    new_name = result[0]
     user_id = session["user_id"]
-    if new_name:
-        db.execute_query("""
-            UPDATE chatbot_schema.project
-            SET name = %s
-            WHERE idproject = %s AND user_id = %s;
-        """, (new_name, project_id, user_id))
-        flash("Project renamed.", "success")
+    db.execute_query("""
+        UPDATE chatbot_schema.project
+        SET name = %s
+        WHERE idproject = %s AND user_id = %s;
+    """, (new_name, project_id, user_id))
+    flash("Project renamed.", "success")
     return redirect("/projects")
 
 @project_bp.route("/projects/<int:project_id>/update_desc", methods=["POST"])
 @login_required
 def update_description(project_id):
-    new_desc = request.form.get("description")
+    result = Validator.check([
+        (request.form.get("description"), "Project description", 500, False)
+    ])
+    if not result:
+        return redirect("/projects")
+
+    new_desc = result[0]
     user_id = session["user_id"]
     db.execute_query("""
         UPDATE chatbot_schema.project

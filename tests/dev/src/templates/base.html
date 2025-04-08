@@ -46,11 +46,11 @@
                     <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
                     <div class="dropdown-menu d-block shadow p-2 mt-1">
                         <form method="POST" action="/projects/{{ project.idproject }}/rename" class="mb-2">
-                            <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                            <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1" required maxlength="100">
                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                         </form>
                         <form method="POST" action="/projects/{{ project.idproject }}/update_desc" class="mb-2">
-                            <input type="text" name="new_description" placeholder="New description" class="form-control form-control-sm mb-1">
+                            <input type="text" name="new_description" placeholder="New description" class="form-control form-control-sm mb-1" required maxlength="100">
                             <button type="submit" class="btn btn-sm btn-outline-secondary w-100">Update Desc</button>
                         </form>
                         <form method="POST" action="/projects/{{ project.idproject }}/delete" 
@@ -71,7 +71,7 @@
                             <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
                             <div class="dropdown-menu d-block shadow p-2 mt-1">
                                 <form method="POST" action="/chat/{{ chat.get('idchat') }}/rename" class="mb-2">
-                                    <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                                    <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1" required maxlength="100">
                                     <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                                 </form>
                                 <form method="POST" action="/chat/{{ chat.get('idchat') }}/assign" class="mb-2">
@@ -110,7 +110,7 @@
                     <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
                     <div class="dropdown-menu d-block shadow p-2 mt-1">
                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/rename" class="mb-2">
-                            <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1">
+                            <input type="text" name="new_name" placeholder="Rename" class="form-control form-control-sm mb-1" required maxlength="100">
                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                         </form>
                         <form method="POST" action="/chat/{{ chat.get('idchat') }}/assign" class="mb-2">

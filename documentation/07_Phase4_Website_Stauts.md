@@ -79,9 +79,9 @@ You're crushing it, and this update confirms it. Let’s take a full snapshot of
 
 | Feature                       | Status | Plan |
 |------------------------------|--------|------|
-| ✏️ **Update Project Description**   | 🟡 Partial | Backend route done (`/update_desc`) but UI isn't working yet |
+| ✏️ **Update Project Description**   | ✅ Fixed | Backend route done (`/update_desc`) but UI isn't working yet |
 | 🗑️ **Project Deletion Cleanup**    | ✅ Fixed | Bug fixed — returns `redirect()` now |
-| 📁 **Assign project on new chat** | ⬜ To Do | Let user create a chat inside a selected project (optional `project_id` param) |
+| 📁 **Assign project on new chat** | ✅ Fixed | Let user create a chat inside a selected project (optional `project_id` param) |
 | 🧪 **Form validation & feedback** | ⬜ To Do | Handle missing/invalid input better, show toasts if needed |
 | 🔒 **Ensure all queries scoped to user** | 🟡 WIP | Queries already scoped, but worth double-checking for security |
 | 🔍 Search/filter sidebar chats         | ⬜ Optional | Add search input above sidebar |
