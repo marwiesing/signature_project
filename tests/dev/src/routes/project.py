@@ -6,10 +6,13 @@ import pandas as pd
 project_bp = Blueprint("project", __name__)
 db = PostgresDatabaseConnection()
 
+def ensure_dataframe(data, columns):
+    if isinstance(data, list):
+        return pd.DataFrame(data, columns=columns)
+    return data
 
 def login_required(f):
     from functools import wraps
-
     @wraps(f)
     def wrapper(*args, **kwargs):
         if "user_id" not in session:
@@ -17,24 +20,25 @@ def login_required(f):
             return redirect("/")
         g.user_id = session["user_id"]
         return f(*args, **kwargs)
-
     return wrapper
-
 
 @project_bp.route("/projects", methods=["GET"])
 @login_required
 def view_projects():
     user_id = session["user_id"]
-    project_df = db.read_sql_query("""
-        SELECT idproject, name, description, created_at
-        FROM chatbot_schema.project
-        WHERE user_id = %s
-        ORDER BY created_at DESC;
-    """, (user_id,))
+    project_df = ensure_dataframe(
+        db.read_sql_query("""
+            SELECT idproject, name, description, created_at
+            FROM chatbot_schema.project
+            WHERE user_id = %s
+            ORDER BY created_at DESC;
+        """, (user_id,)),
+        ["idproject", "name", "description", "created_at"]
+    )
 
     projects = project_df.to_dict("records") if hasattr(project_df, "to_dict") else []
-
     sidebar_projects, unassigned_chats = get_sidebar_data(user_id)
+
     print("[PROJECT VIEW] sidebar_projects =", sidebar_projects)
     return render_template(
         "project.html",
@@ -44,7 +48,6 @@ def view_projects():
         show_chat_sidebar=True
     )
 
-
 @project_bp.route("/projects/create", methods=["POST"])
 @login_required
 def create_project():
@@ -52,15 +55,12 @@ def create_project():
     description = request.form.get("description", "")
     user_id = session["user_id"]
     if name:
-        db.execute_query(
-            """
+        db.execute_query("""
             INSERT INTO chatbot_schema.project (name, description, user_id)
             VALUES (%s, %s, %s);
-            """,
-            (name, description, session["user_id"]))
+        """, (name, description, user_id))
         flash("Project created", "success")
     return redirect("/projects")
-
 
 @project_bp.route("/projects/<int:project_id>/rename", methods=["POST"])
 @login_required
@@ -68,47 +68,35 @@ def rename_project(project_id):
     new_name = request.form.get("new_name")
     user_id = session["user_id"]
     if new_name:
-        db.execute_query(
-            """
+        db.execute_query("""
             UPDATE chatbot_schema.project
             SET name = %s
             WHERE idproject = %s AND user_id = %s;
-            """,
-            (new_name, project_id, user_id),
-        )
+        """, (new_name, project_id, user_id))
         flash("Project renamed.", "success")
     return redirect("/projects")
-
 
 @project_bp.route("/projects/<int:project_id>/update_desc", methods=["POST"])
 @login_required
 def update_description(project_id):
     new_desc = request.form.get("description")
     user_id = session["user_id"]
-    db.execute_query(
-        """
+    db.execute_query("""
         UPDATE chatbot_schema.project
         SET description = %s
         WHERE idproject = %s AND user_id = %s;
-        """,
-        (new_desc, project_id, user_id),
-    )
+    """, (new_desc, project_id, user_id))
     flash("Description updated.", "success")
     return redirect("/projects")
-
 
 @project_bp.route("/projects/<int:project_id>/delete", methods=["POST"])
 @login_required
 def delete_project(project_id):
     user_id = session["user_id"]
-    # Delete messages → chats → project (cascading manually)
-    db.execute_query(
-        """
+    db.execute_query("""
         DELETE FROM chatbot_schema.project
         WHERE idproject = %s AND user_id = %s;
-        """,
-        (project_id, user_id),
-    )
+    """, (project_id, user_id))
     flash("Project deleted along with its chats and messages.", "danger")
     return redirect("/projects")
 
@@ -118,36 +106,37 @@ def project_detail(project_id):
     user_id = session["user_id"]
     print(f"[DEBUG] session user_id = {user_id}, project_id = {project_id}")
 
-    project_df = db.read_sql_query("""
-        SELECT idproject, name, description, created_at
-        FROM chatbot_schema.project
-        WHERE idproject = %s AND user_id = %s;
-    """, (project_id, user_id))
+    project_df = ensure_dataframe(
+        db.read_sql_query("""
+            SELECT idproject, name, description, created_at
+            FROM chatbot_schema.project
+            WHERE idproject = %s AND user_id = %s;
+        """, (project_id, user_id)),
+        ["idproject", "name", "description", "created_at"]
+    )
     print("[DEBUG] raw project_df =", project_df)
 
-    # Ensure it's a DataFrame
-    if isinstance(project_df, list):
-        project_df = pd.DataFrame(project_df, columns=["idproject", "name", "description", "created_at"])
-
     project_records = project_df.to_dict("records") if hasattr(project_df, "to_dict") else []
-
     print(f"[DEBUG] project_records = {project_records}")
 
     if not project_records:
         flash("Project not found or unauthorized", "danger")
         return redirect("/projects")
 
-
     project = project_records[0]
 
-    chats_df = db.read_sql_query("""
-        SELECT idchat, name, created_at
-        FROM chatbot_schema.chat
-        WHERE project_id = %s AND user_id = %s
-        ORDER BY created_at DESC;
-    """, (project_id, user_id))
+    chats_df = ensure_dataframe(
+        db.read_sql_query("""
+            SELECT idchat, name, created_at
+            FROM chatbot_schema.chat
+            WHERE project_id = %s AND user_id = %s
+            ORDER BY created_at DESC;
+        """, (project_id, user_id)),
+        ["idchat", "name", "created_at"]
+    )
 
     chats = chats_df.to_dict("records") if hasattr(chats_df, "to_dict") else []
+    print("[DEBUG] chats =", chats)
 
     sidebar_projects, unassigned_chats = get_sidebar_data(user_id)
 
