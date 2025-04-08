@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 auth_bp = Blueprint("auth", __name__)
 db = PostgresDatabaseConnection()

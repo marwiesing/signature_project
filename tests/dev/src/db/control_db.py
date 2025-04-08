@@ -1,4 +1,4 @@
-from db_utils import PostgresDatabaseConnection
+from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 
 def run_control_sql():

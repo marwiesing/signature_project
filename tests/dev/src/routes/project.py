@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
-from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from tests.dev.src.routes.chat import get_sidebar_data
 from  tests.dev.src.utils.validator import Validator
 import pandas as pd

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, render_template, redirect, session, flash, g
-from tests.dev.src.db.db_utils import PostgresDatabaseConnection
+from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
