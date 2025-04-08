@@ -11,7 +11,7 @@
         {% for msg in messages %}
           <li class="list-group-item">
             <div>{{ msg.content }}</div>
-            <small class="text-muted">{{ msg.timestamp }}</small>
+            <small class="text-muted">{{ msg.timestamp | format_timestamp }}</small>
           </li>
         {% endfor %}
       </ul>

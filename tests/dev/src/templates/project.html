@@ -34,7 +34,7 @@
         <div class="me-3">
           <h5 class="mb-1">{{ project.name }}</h5>
           <p class="mb-1 text-muted">{{ project.description or "No description" }}</p>
-          <small class="text-muted">Created: {{ project.created_at }}</small>
+          <small class="text-muted">Created: {{ project.created_at | format_timestamp }}</small>
         </div>
         <details class="dropdown">
           <summary class="btn btn-sm btn-link text-muted">⋮</summary>
