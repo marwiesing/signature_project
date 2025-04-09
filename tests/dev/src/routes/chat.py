@@ -1,10 +1,12 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from tests.dev.src.utils.validator import Validator
+from tests.dev.src.utils.llm import LLMHelper
 import pandas as pd
 
 chat_bp = Blueprint("chat", __name__)
 db = PostgresDatabaseConnection()
+llm = LLMHelper()
 
 def login_required(f):
     from functools import wraps
@@ -115,6 +117,7 @@ def chat_current():
 def chat_view(chat_id):
     user_id = session["user_id"]
     session["chat_id"] = chat_id
+    llm_models = llm.get_all_models()
 
     if request.method == "POST":
         result = Validator.check([
@@ -140,13 +143,22 @@ def chat_view(chat_id):
 
     sidebar_projects, unassigned = get_sidebar_data(user_id)
 
+    current_llm_id_result = db.read_sql_query("""
+    SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s;
+    """, (chat_id,))
+    current_model_id = current_llm_id_result[0][0] if current_llm_id_result else None
+    current_model_name = llm.get_model_name_by_id(current_model_id)
+
     return render_template("chat.html",
         messages=messages,
         username=session.get("username"),
         sidebar_projects=sidebar_projects,
         unassigned_chats=unassigned,
         chat_id=chat_id,
-        show_chat_sidebar=True
+        show_chat_sidebar=True,
+        llm_models=llm_models,
+        current_model_id=current_model_id,
+        current_model_name=current_model_name
     )
 
 @chat_bp.route("/chat/new")
@@ -156,9 +168,9 @@ def chat_new():
     project_id = request.args.get("project_id")  # Optional
 
     db.execute_query("""
-        INSERT INTO chatbot_schema.chat (user_id, name, project_id)
-        VALUES (%s, %s, %s);
-    """, (user_id, "Untitled Chat", project_id if project_id else None))
+        INSERT INTO chatbot_schema.chat (user_id, name, project_id, idllm)
+        VALUES (%s, %s, %s, %s);
+    """, (user_id, "Untitled Chat", project_id if project_id else None, llm.get_default_model_id()))
 
     result = db.read_sql_query("""
         SELECT idchat FROM chatbot_schema.chat
@@ -231,3 +243,12 @@ def delete_chat(chat_id):
     """, (chat_id, chat_id))
     flash("Chat deleted.", "danger")
     return redirect("/chat")
+
+@chat_bp.route("/chat/<int:chat_id>/set_model", methods=["POST"])
+@login_required
+def change_model(chat_id):
+    llm_id = request.form.get("llm_id")
+    llm = LLMHelper()
+    llm.update_chat_model(chat_id, llm_id)
+    flash("LLM model updated for this chat.", "success")
+    return redirect(f"/chat/{chat_id}")

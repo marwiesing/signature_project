@@ -36,3 +36,6 @@ python-dotenv
 
 pandas
 sqlparse
+
+# HTTP client for API calls
+requests==2.31.0

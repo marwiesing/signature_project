@@ -3,6 +3,20 @@
 {% block content %}
 
 <h3>Chat</h3>
+<h3 class="d-flex justify-content-between align-items-center">
+  <span>Chat (Model: <strong>{{ current_model_name }}</strong>)</span>
+
+  <form method="POST" action="/chat/{{ chat_id }}/set_model" class="d-flex align-items-center gap-2">
+    <select name="llm_id" class="form-select form-select-sm">
+      {% for model in llm_models %}
+        <option value="{{ model.id }}" {% if model.id == current_model_id %}selected{% endif %}>
+          {{ model.name }}
+        </option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-outline-primary">Switch</button>
+  </form>
+</h3>
 <hr>
 
 <div class="chat-box border rounded p-3 mb-3" id="chatBox">

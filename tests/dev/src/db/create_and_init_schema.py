@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, text
-import os
-import sys
+import os, sys
 from pathlib import Path
 from dotenv import load_dotenv; load_dotenv()
 from datetime import datetime
