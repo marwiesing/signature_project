@@ -59,10 +59,14 @@
 
 
 <script>
-  window.onload = function () {
+  window.addEventListener("load", () => {
     const chatBox = document.getElementById("chatBox");
-    chatBox.scrollTop = chatBox.scrollHeight;
-  };
+    if (chatBox) {
+      requestAnimationFrame(() => {
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+    }
+  });
 
   function lockForm() {
     const input = document.getElementById("chatInput");

@@ -50,7 +50,7 @@ class LLMHelper:
                         "prompt": prompt,
                         "stream": False
                     },
-                    timeout=45  # ⏱️ Increased timeout
+                    timeout=60  # ⏱️ Increased timeout
                 )
                 response.raise_for_status()
 
