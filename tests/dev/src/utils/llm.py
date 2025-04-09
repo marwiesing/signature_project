@@ -43,15 +43,27 @@ class LLMHelper:
         with _lock:
             try:
                 print(f"[LLM] Querying model '{model}' with prompt: {prompt[:60]}...")
-                response = requests.post(f"{self.endpoint}/api/generate", json={
-                    "model": model,
-                    "prompt": prompt,
-                    "stream": False  # Full response only
-                }, timeout=10)
-
+                response = requests.post(
+                    f"{self.endpoint}/api/generate",
+                    json={
+                        "model": model,
+                        "prompt": prompt,
+                        "stream": False
+                    },
+                    timeout=45  # ⏱️ Increased timeout
+                )
                 response.raise_for_status()
-                return response.json().get("response", "").strip()
+
+                data = response.json()
+                print("[LLM] Response from Ollama:", data)
+
+                return data.get("response", "").strip()
+
+            except requests.exceptions.Timeout:
+                print("[LLM] Timeout: The model took too long to respond.")
+                return "⚠️ The model took too long to respond. Please try again."
 
             except Exception as e:
                 print(f"[LLM] Error querying Ollama: {e}")
                 return "⚠️ Failed to get response from LLM"
+

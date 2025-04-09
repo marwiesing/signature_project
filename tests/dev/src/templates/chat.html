@@ -34,7 +34,7 @@
 
         {% if pair.response %}
         <!-- Bot Response -->
-        <div class="card border-secondary bg-light ms-4 mt-2">
+        <div class="card ms-4 border-secondary {% if pair.response == '🧠 Thinking...' %}bg-warning-subtle{% else %}bg-light{% endif %}">
           <div class="card-body p-2">
             <div class="d-flex justify-content-between align-items-start">
               <span><strong>🧠 Bot</strong></span>
@@ -52,17 +52,34 @@
 </div>
 
 <!-- Message Input -->
-<form method="POST" class="d-flex align-items-start gap-2">
-  <textarea name="content" rows="2" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
-  <button type="submit" class="btn btn-primary">Send</button>
+<form method="POST" class="d-flex align-items-start gap-2" id="chatForm" onsubmit="lockForm()">
+  <textarea name="content" id="chatInput" rows="2" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
+  <button type="submit" class="btn btn-primary" id="sendButton">Send</button>
 </form>
+
 
 <script>
   window.onload = function () {
     const chatBox = document.getElementById("chatBox");
     chatBox.scrollTop = chatBox.scrollHeight;
   };
+
+  function lockForm() {
+    const input = document.getElementById("chatInput");
+    const sendButton = document.getElementById("sendButton");
+
+    // Mark input read-only and visually grey it out
+    input.readOnly = true;
+    input.classList.add("locked-textarea");
+
+    // Update button state
+    sendButton.disabled = true;
+    sendButton.textContent = "Sending...";
+    sendButton.classList.remove("btn-primary");
+    sendButton.classList.add("btn-secondary");
+  }
 </script>
+
 
 <style>
   .chat-box {
@@ -71,6 +88,11 @@
   }
   .message-text {
     white-space: pre-wrap;
+  }
+  .locked-textarea {
+    background-color: #f1f1f1 !important;
+    color: #6c757d !important;
+    cursor: not-allowed;
   }
 </style>
 

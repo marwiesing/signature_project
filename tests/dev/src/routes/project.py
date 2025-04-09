@@ -158,3 +158,42 @@ def project_detail(project_id):
         unassigned_chats=unassigned_chats,
         show_chat_sidebar=True
     )
+
+@project_bp.route("/projects/<int:project_id>/new_chat", methods=["POST"])
+@login_required
+def create_chat_in_project(project_id):
+    user_id = session["user_id"]
+
+    # Confirm the project belongs to this user
+    project = db.read_sql_query("""
+        SELECT idproject FROM chatbot_schema.project
+        WHERE idproject = %s AND idappuser = %s;
+    """, (project_id, user_id))
+
+    if not project:
+        flash("Unauthorized or missing project.", "danger")
+        return redirect("/projects")
+
+    # Create new chat assigned to this project
+    db.execute_query("""
+        INSERT INTO chatbot_schema.chat (idappuser, idproject, txname, idllm)
+        VALUES (
+            %s,
+            %s,
+            %s,
+            (SELECT idllm FROM chatbot_schema.llm WHERE txname = 'deepseek-r1')
+        );
+    """, (user_id, project_id, "New Project Chat"))
+
+    flash("New chat created in this project.", "success")
+
+    # Get newly created chat ID
+    chat_id_result = db.read_sql_query("""
+        SELECT idchat FROM chatbot_schema.chat
+        WHERE idappuser = %s AND idproject = %s
+        ORDER BY dtcreated DESC LIMIT 1;
+    """, (user_id, project_id))
+
+    if chat_id_result:
+        return redirect(f"/chat/{chat_id_result[0][0]}")
+    return redirect("/projects")

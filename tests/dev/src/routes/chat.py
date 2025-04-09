@@ -44,7 +44,7 @@ def get_sidebar_data(user_id):
                 ORDER BY dtcreated DESC;
             """, (user_id, project_id))
             chats = chats_df.to_dict("records") if hasattr(chats_df, "to_dict") else [
-                {"idChat": row[0], "txname": row[1]} for row in chats_df]
+                {"idchat": row[0], "txname": row[1]} for row in chats_df]
             sidebar_projects.append({
                 "idproject": project_id,
                 "name": name,
@@ -130,16 +130,24 @@ def chat_view(chat_id):
         # 5. Send prompt to LLM
         response_text = llm.query_ollama(prompt, model_name)
 
-        # 6. Store LLM response
+        # 6. Store temporary placeholder first
         db.execute_query("""
             INSERT INTO chatbot_schema.response (idchat, idmessage, idllm, txcontent)
             VALUES (
                 %s,
                 %s,
                 (SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s),
-                %s
+                '🧠 Thinking...'
             );
-        """, (chat_id, id_message, chat_id, response_text))
+        """, (chat_id, id_message, chat_id))
+
+        # 7. Then update the response after model finishes
+        db.execute_query("""
+            UPDATE chatbot_schema.response
+            SET txcontent = %s
+            WHERE idmessage = %s AND idchat = %s;
+        """, (response_text, id_message, chat_id))
+
 
         return redirect(f"/chat/{chat_id}")
 
@@ -197,11 +205,13 @@ def rename_chat(chat_id):
         return redirect(f"/chat/{chat_id}")
 
     new_name = result[0]
+    user_id = session["user_id"]  
+
     db.execute_query("""
         UPDATE chatbot_schema.chat
         SET txname = %s
-        WHERE idchat = %s;
-    """, (new_name, chat_id))
+        WHERE idchat = %s AND idappuser = %s;
+    """, (new_name, chat_id, user_id))
     flash("Chat renamed.", "success")
     return redirect(f"/chat/{chat_id}")
 
