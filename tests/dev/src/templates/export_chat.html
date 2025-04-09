@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Export Chat{% endblock %}
+{% block content %}
+<h3>📄 Export Chat #{{ chat_id }}</h3>
+<hr>
+<pre class="bg-dark text-white p-3 rounded" style="white-space: pre-wrap;">{{ markdown }}</pre>
+
+<a href="{{ url_for('chat.download_chat_markdown', chat_id=chat_id) }}" class="btn btn-success mt-3">
+  ⬇️ Download as .md
+</a>
+{% endblock %}

@@ -39,3 +39,6 @@ sqlparse
 
 # HTTP client for API calls
 requests==2.31.0
+
+# Markdown support
+Markdown==3.4.4

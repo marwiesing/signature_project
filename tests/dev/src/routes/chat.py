@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, session, flash, g
+from flask import Blueprint, render_template, request, redirect, session, flash, g, Response
 from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from tests.dev.src.utils.validator import Validator
 from tests.dev.src.utils.llm import LLMHelper
@@ -293,3 +293,68 @@ def create_new_chat():
     else:
         flash("Failed to create chat.", "danger")
         return redirect("/chat")
+
+# @chat_bp.route("/chat/<int:chat_id>/export", methods=["GET"])
+# @login_required
+# def export_chat_markdown(chat_id):
+#     user_id = session["user_id"]
+
+#     # Fetch messages and responses
+#     rows = db.read_sql_query("""
+#         SELECT
+#             m.txContent AS message,
+#             m.dtCreated AS message_time,
+#             r.txContent AS response,
+#             r.dtCreated AS response_time
+#         FROM chatbot_schema.message m
+#         LEFT JOIN chatbot_schema.response r ON m.idmessage = r.idmessage
+#         WHERE m.idchat = %s AND m.idappuser = %s
+#         ORDER BY m.dtcreated ASC;
+#     """, (chat_id, user_id))
+
+#     # Convert to Markdown format
+#     markdown_lines = [f"# 🧠 Chat Export (Chat ID: {chat_id})\n"]
+#     for row in rows:
+#         msg_time = row[1].strftime("%Y-%m-%d %H:%M:%S")
+#         resp_time = row[3].strftime("%Y-%m-%d %H:%M:%S") if row[3] else ""
+#         markdown_lines.append(f"### 🧑 You ({msg_time})\n{row[0]}\n")
+#         if row[2]:
+#             markdown_lines.append(f"### 🤖 Bot ({resp_time})\n{row[2]}\n")
+
+#     markdown_content = "\n".join(markdown_lines)
+
+#     return render_template("export_chat.html", markdown=markdown_content, chat_id=chat_id)
+
+@chat_bp.route("/chat/<int:chat_id>/download", methods=["GET"])
+@login_required
+def download_chat_markdown(chat_id):
+    user_id = session["user_id"]
+
+    rows = db.read_sql_query("""
+        SELECT
+            m.txContent AS message,
+            m.dtCreated AS message_time,
+            r.txContent AS response,
+            r.dtCreated AS response_time
+        FROM chatbot_schema.message m
+        LEFT JOIN chatbot_schema.response r ON m.idmessage = r.idmessage
+        JOIN chatbot_schema.chat c ON m.idchat = c.idchat
+        WHERE m.idchat = %s AND c.idappuser = %s
+        ORDER BY m.dtcreated ASC;
+    """, (chat_id, user_id))
+
+    if not rows:
+        flash("No messages found or access denied.", "danger")
+        return redirect(f"/chat/{chat_id}")
+
+    markdown_lines = [f"# 🧠 Chat Export (Chat ID: {chat_id})\n"]
+    for row in rows:
+        msg_time = row[1].strftime("%Y-%m-%d %H:%M:%S")
+        resp_time = row[3].strftime("%Y-%m-%d %H:%M:%S") if row[3] else ""
+        markdown_lines.append(f"### 🧑 You ({msg_time})\n{row[0]}\n")
+        if row[2]:
+            markdown_lines.append(f"### 🤖 Bot ({resp_time})\n{row[2]}\n")
+
+    markdown_content = "\n".join(markdown_lines)
+    return Response(markdown_content, mimetype="text/markdown",
+                    headers={"Content-Disposition": f"attachment;filename=chat_{chat_id}.md"})

@@ -13,6 +13,7 @@
       {% endfor %}
     </select>
     <button type="submit" class="btn btn-sm btn-outline-primary">Switch</button>
+    <a href="/chat/{{ chat_id }}/download" class="btn btn-sm btn-outline-success">Download .md</a>
   </form>
 </h3>
 <hr>
@@ -28,7 +29,7 @@
               <span><strong>🧑 You</strong></span>
               <small class="text-muted">{{ pair.message_time | format_timestamp }}</small>
             </div>
-            <div class="mt-1 message-text">{{ pair.message }}</div>
+            <div class="mt-1 message-text">{{ pair.message | markdown }}</div>
           </div>
         </div>
 
@@ -40,7 +41,7 @@
               <span><strong>🧠 Bot</strong></span>
               <small class="text-muted">{{ pair.response_time | format_timestamp }}</small>
             </div>
-            <div class="mt-1 message-text">{{ pair.response }}</div>
+            <div class="mt-1 message-text">{{ pair.response | markdown }}</div>
           </div>
         </div>
         {% endif %}
