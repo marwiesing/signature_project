@@ -19,72 +19,48 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# Improved version with logging:
 def get_sidebar_data(user_id):
     sidebar_projects = []
-
-    # Read projects
     project_data = db.read_sql_query("""
-        SELECT idproject, name, description
+        SELECT idproject, txname, txdescription
         FROM chatbot_schema.project
-        WHERE user_id = %s
-        ORDER BY created_at DESC;
+        WHERE idappuser = %s
+        ORDER BY dtcreated DESC;
     """, (user_id,))
 
-    # Normalize to DataFrame
     if isinstance(project_data, list):
-        project_df = pd.DataFrame(project_data, columns=["idproject", "name", "description"])
+        project_df = pd.DataFrame(project_data, columns=["idproject", "txname", "txdescription"])
     else:
         project_df = project_data
-
-    print("[DEBUG] project_df:", project_df)
 
     if project_df is not None and not project_df.empty:
         for _, row in project_df.iterrows():
             project_id = row["idproject"]
-            name = row["name"]
-            description = row.get("description") or ""
-
+            name = row["txname"]
+            description = row.get("txdescription") or ""
             chats_df = db.read_sql_query("""
-                SELECT idchat, name FROM chatbot_schema.chat
-                WHERE user_id = %s AND project_id = %s
-                ORDER BY created_at DESC;
+                SELECT idchat, txname FROM chatbot_schema.chat
+                WHERE idappuser = %s AND idproject = %s
+                ORDER BY dtcreated DESC;
             """, (user_id, project_id))
-
-            print(f"[DEBUG] Chats for project {name}:", chats_df)
-
-            chats = []
-            if hasattr(chats_df, "to_dict"):
-                chats = chats_df.to_dict("records")
-            elif isinstance(chats_df, list):
-                chats = [{"idchat": row[0], "name": row[1]} for row in chats_df]
-
+            chats = chats_df.to_dict("records") if hasattr(chats_df, "to_dict") else [
+                {"idChat": row[0], "txname": row[1]} for row in chats_df]
             sidebar_projects.append({
                 "idproject": project_id,
                 "name": name,
                 "description": description,
                 "chats": chats
             })
-    else:
-        print("[DEBUG] No projects found for user_id =", user_id)
 
-    # Unassigned chats
     unassigned_df = db.read_sql_query("""
-        SELECT idchat, name FROM chatbot_schema.chat
-        WHERE user_id = %s AND project_id IS NULL
-        ORDER BY created_at DESC;
+        SELECT idchat, txname FROM chatbot_schema.chat
+        WHERE idappuser = %s AND idproject IS NULL
+        ORDER BY dtcreated DESC;
     """, (user_id,))
 
-    if isinstance(unassigned_df, list):
-        unassigned_chats = [{"idchat": row[0], "name": row[1]} for row in unassigned_df]
-    elif hasattr(unassigned_df, "to_dict"):
-        unassigned_chats = unassigned_df.to_dict("records")
-    else:
-        unassigned_chats = []
+    unassigned_chats = unassigned_df.to_dict("records") if hasattr(unassigned_df, "to_dict") else [
+        {"idchat": row[0], "txname": row[1]} for row in unassigned_df]
 
-    print("[DEBUG] Final sidebar_projects:", sidebar_projects)
-    print("[DEBUG] Final unassigned_chats:", unassigned_chats)
-    
     return sidebar_projects, unassigned_chats
 
 @chat_bp.route("/chat")
@@ -101,8 +77,8 @@ def chat_current():
     if not chat_id:
         latest = db.read_sql_query("""
             SELECT idchat FROM chatbot_schema.chat
-            WHERE user_id = %s
-            ORDER BY created_at DESC LIMIT 1;
+            WHERE idappuser = %s
+            ORDER BY dtcreated DESC LIMIT 1;
         """, (user_id,))
         if latest:
             chat_id = latest[0][0]
@@ -120,37 +96,87 @@ def chat_view(chat_id):
     llm_models = llm.get_all_models()
 
     if request.method == "POST":
+        # 1. Validate user input
         result = Validator.check([
             (request.form.get("content"), "Message", 5000, True)
         ])
         if not result:
             return redirect(f"/chat/{chat_id}")
 
-        content = result[0]
-        db.execute_query("""
-            INSERT INTO chatbot_schema.message (chat_id, content)
-            VALUES (%s, %s);
-        """, (chat_id, content))
-        return redirect(f"/chat/{chat_id}")
-    
-    messages = db.read_sql_query("""
-        SELECT content, timestamp
-        FROM chatbot_schema.message
-        WHERE chat_id = %s
-        ORDER BY timestamp ASC;
-    """, (chat_id,)) or []
-    messages = [{"content": row[0], "timestamp": row[1]} for row in messages]
+        prompt = result[0]
 
+        # 2. Store user message
+        db.execute_query("""
+            INSERT INTO chatbot_schema.message (idchat, txcontent)
+            VALUES (%s, %s);
+        """, (chat_id, prompt))
+
+        # 3. Fetch last inserted message ID
+        message_id_result = db.read_sql_query("""
+            SELECT idmessage FROM chatbot_schema.message
+            WHERE idchat = %s
+            ORDER BY dtcreated DESC LIMIT 1;
+        """, (chat_id,))
+        id_message = message_id_result[0][0] if message_id_result else None
+
+        # 4. Get model name for this chat
+        model_result = db.read_sql_query("""
+            SELECT l.txname FROM chatbot_schema.chat c
+            JOIN chatbot_schema.llm l ON c.idllm = l.idllm
+            WHERE c.idchat = %s;
+        """, (chat_id,))
+        model_name = model_result[0][0] if model_result else "deepseek-r1"
+
+        # 5. Send prompt to LLM
+        response_text = llm.query_ollama(prompt, model_name)
+
+        # 6. Store LLM response
+        db.execute_query("""
+            INSERT INTO chatbot_schema.response (idchat, idmessage, idllm, txcontent)
+            VALUES (
+                %s,
+                %s,
+                (SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s),
+                %s
+            );
+        """, (chat_id, id_message, chat_id, response_text))
+
+        return redirect(f"/chat/{chat_id}")
+
+    # === GET METHOD ===
+
+    # Sidebar: Projects + Chats
     sidebar_projects, unassigned = get_sidebar_data(user_id)
 
-    current_llm_id_result = db.read_sql_query("""
-    SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s;
+    # Current model info
+    model_result = db.read_sql_query("""
+        SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s;
     """, (chat_id,))
-    current_model_id = current_llm_id_result[0][0] if current_llm_id_result else None
+    current_model_id = model_result[0][0] if model_result else llm.get_default_model_id()
     current_model_name = llm.get_model_name_by_id(current_model_id)
 
+    # Fetch all user messages and LLM responses (paired)
+    rows = db.read_sql_query("""
+        SELECT
+            m.txContent AS message,
+            m.dtCreated AS message_time,
+            r.txContent AS response,
+            r.dtCreated AS response_time
+        FROM chatbot_schema.message m
+        LEFT JOIN chatbot_schema.response r ON m.idmessage = r.idmessage
+        WHERE m.idchat = %s
+        ORDER BY m.dtcreated ASC;
+    """, (chat_id,))
+
+    message_pairs = [{
+        "message": row[0],
+        "message_time": row[1],
+        "response": row[2],
+        "response_time": row[3],
+    } for row in rows]
+
     return render_template("chat.html",
-        messages=messages,
+        messages=message_pairs,
         username=session.get("username"),
         sidebar_projects=sidebar_projects,
         unassigned_chats=unassigned,
@@ -160,30 +186,6 @@ def chat_view(chat_id):
         current_model_id=current_model_id,
         current_model_name=current_model_name
     )
-
-@chat_bp.route("/chat/new")
-@login_required
-def chat_new():
-    user_id = session["user_id"]
-    project_id = request.args.get("project_id")  # Optional
-
-    db.execute_query("""
-        INSERT INTO chatbot_schema.chat (user_id, name, project_id, idllm)
-        VALUES (%s, %s, %s, %s);
-    """, (user_id, "Untitled Chat", project_id if project_id else None, llm.get_default_model_id()))
-
-    result = db.read_sql_query("""
-        SELECT idchat FROM chatbot_schema.chat
-        WHERE user_id = %s
-        ORDER BY created_at DESC LIMIT 1;
-    """, (user_id,))
-    if result:
-        session["chat_id"] = result[0][0]
-        return redirect(f"/chat/{result[0][0]}")
-    flash("Failed to create new chat", "danger")
-    return redirect("/chat")
-
-# --- New Features for Chat Actions ---
 
 @chat_bp.route("/chat/<int:chat_id>/rename", methods=["POST"])
 @login_required
@@ -197,12 +199,11 @@ def rename_chat(chat_id):
     new_name = result[0]
     db.execute_query("""
         UPDATE chatbot_schema.chat
-        SET name = %s
+        SET txname = %s
         WHERE idchat = %s;
     """, (new_name, chat_id))
     flash("Chat renamed.", "success")
     return redirect(f"/chat/{chat_id}")
-
 
 @chat_bp.route("/chat/<int:chat_id>/assign", methods=["POST"])
 @login_required
@@ -216,19 +217,18 @@ def assign_to_project(chat_id):
     project_id = result[0]
     db.execute_query("""
         UPDATE chatbot_schema.chat
-        SET project_id = %s
+        SET idproject = %s
         WHERE idchat = %s;
     """, (project_id, chat_id))
     flash("Chat assigned to project.", "success")
     return redirect(f"/chat/{chat_id}")
-
 
 @chat_bp.route("/chat/<int:chat_id>/remove", methods=["POST"])
 @login_required
 def remove_from_project(chat_id):
     db.execute_query("""
         UPDATE chatbot_schema.chat
-        SET project_id = NULL
+        SET idproject = NULL
         WHERE idchat = %s;
     """, (chat_id,))
     flash("Chat removed from project.", "warning")
@@ -238,7 +238,7 @@ def remove_from_project(chat_id):
 @login_required
 def delete_chat(chat_id):
     db.execute_query("""
-        DELETE FROM chatbot_schema.message WHERE chat_id = %s;
+        DELETE FROM chatbot_schema.message WHERE idchat = %s;
         DELETE FROM chatbot_schema.chat WHERE idchat = %s;
     """, (chat_id, chat_id))
     flash("Chat deleted.", "danger")
@@ -248,7 +248,38 @@ def delete_chat(chat_id):
 @login_required
 def change_model(chat_id):
     llm_id = request.form.get("llm_id")
-    llm = LLMHelper()
     llm.update_chat_model(chat_id, llm_id)
     flash("LLM model updated for this chat.", "success")
     return redirect(f"/chat/{chat_id}")
+
+@chat_bp.route("/chat/new")
+@login_required
+def create_new_chat():
+    user_id = session["user_id"]
+
+    # Insert a new chat with default model and placeholder name
+    db.execute_query("""
+        INSERT INTO chatbot_schema.chat (idappuser, txname, idllm)
+        VALUES (
+            %s,
+            %s,
+            (SELECT idllm FROM chatbot_schema.llm WHERE txname = 'deepseek-r1')
+        );
+    """, (user_id, 'Untitled Chat'))
+
+    # Fetch the newly created chat ID
+    new_chat_id_result = db.read_sql_query("""
+        SELECT idchat FROM chatbot_schema.chat
+        WHERE idappuser = %s
+        ORDER BY dtcreated DESC LIMIT 1;
+    """, (user_id,))
+    
+    new_chat_id = new_chat_id_result[0][0] if new_chat_id_result else None
+
+    if new_chat_id:
+        session["chat_id"] = new_chat_id
+        flash("New chat started!", "success")
+        return redirect(f"/chat/{new_chat_id}")
+    else:
+        flash("Failed to create chat.", "danger")
+        return redirect("/chat")

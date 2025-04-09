@@ -39,7 +39,7 @@
                     <a href="/projects/{{ project.idproject }}" 
                        class="text-decoration-none text-truncate fw-semibold" 
                        title="{{ project.description or 'No description' }}">
-                        {{ project.name }}
+                        {{ project.name | safe }}
                     </a>
                 </div>
                 <details class="dropdown text-end ms-1">
@@ -65,7 +65,7 @@
                     {% for chat in project.chats %}
                     <li class="d-flex justify-content-between align-items-center">
                         <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">
-                            {{ chat.get('name') or "Untitled Chat" }}
+                            {{ chat.get('name' | safe) or "Untitled Chat" }}
                         </a>
                         <details class="dropdown">
                             <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>
@@ -104,7 +104,7 @@
             {% for chat in unassigned_chats %}
             <li class="d-flex justify-content-between align-items-center">
                 <a href="/chat/{{ chat.get('idchat') }}" class="text-decoration-none text-truncate">
-                    {{ chat.get('name') or "Untitled Chat" }}
+                    {{ chat.get('name') or "Untitled Chat" | safe }}
                 </a>
                 <details class="dropdown">
                     <summary class="btn btn-sm btn-link p-0 m-0 text-muted">⋮</summary>

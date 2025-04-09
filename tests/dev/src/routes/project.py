@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g
 from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from tests.dev.src.routes.chat import get_sidebar_data
-from  tests.dev.src.utils.validator import Validator
+from tests.dev.src.utils.validator import Validator
 import pandas as pd
 
 project_bp = Blueprint("project", __name__)
@@ -29,18 +29,17 @@ def view_projects():
     user_id = session["user_id"]
     project_df = ensure_dataframe(
         db.read_sql_query("""
-            SELECT idproject, name, description, created_at
+            SELECT idproject, txname, txdescription, dtcreated
             FROM chatbot_schema.project
-            WHERE user_id = %s
-            ORDER BY created_at DESC;
+            WHERE idappuser = %s
+            ORDER BY dtcreated DESC;
         """, (user_id,)),
-        ["idproject", "name", "description", "created_at"]
+        ["idproject", "txname", "txdescription", "dtcreated"]
     )
 
     projects = project_df.to_dict("records") if hasattr(project_df, "to_dict") else []
     sidebar_projects, unassigned_chats = get_sidebar_data(user_id)
 
-    print("[PROJECT VIEW] sidebar_projects =", sidebar_projects)
     return render_template(
         "project.html",
         projects=projects,
@@ -63,7 +62,7 @@ def create_project():
     user_id = session["user_id"]
 
     db.execute_query("""
-        INSERT INTO chatbot_schema.project (name, description, user_id)
+        INSERT INTO chatbot_schema.project (txname, txdescription, idappuser)
         VALUES (%s, %s, %s);
     """, (name, description, user_id))
     flash("Project created", "success")
@@ -82,8 +81,8 @@ def rename_project(project_id):
     user_id = session["user_id"]
     db.execute_query("""
         UPDATE chatbot_schema.project
-        SET name = %s
-        WHERE idproject = %s AND user_id = %s;
+        SET txname = %s
+        WHERE idproject = %s AND idappuser = %s;
     """, (new_name, project_id, user_id))
     flash("Project renamed.", "success")
     return redirect("/projects")
@@ -101,8 +100,8 @@ def update_description(project_id):
     user_id = session["user_id"]
     db.execute_query("""
         UPDATE chatbot_schema.project
-        SET description = %s
-        WHERE idproject = %s AND user_id = %s;
+        SET txdescription = %s
+        WHERE idproject = %s AND idappuser = %s;
     """, (new_desc, project_id, user_id))
     flash("Description updated.", "success")
     return redirect("/projects")
@@ -113,7 +112,7 @@ def delete_project(project_id):
     user_id = session["user_id"]
     db.execute_query("""
         DELETE FROM chatbot_schema.project
-        WHERE idproject = %s AND user_id = %s;
+        WHERE idproject = %s AND idappuser = %s;
     """, (project_id, user_id))
     flash("Project deleted along with its chats and messages.", "danger")
     return redirect("/projects")
@@ -122,21 +121,17 @@ def delete_project(project_id):
 @login_required
 def project_detail(project_id):
     user_id = session["user_id"]
-    print(f"[DEBUG] session user_id = {user_id}, project_id = {project_id}")
 
     project_df = ensure_dataframe(
         db.read_sql_query("""
-            SELECT idproject, name, description, created_at
+            SELECT idproject, txname, txdescription, dtcreated
             FROM chatbot_schema.project
-            WHERE idproject = %s AND user_id = %s;
+            WHERE idproject = %s AND idappuser = %s;
         """, (project_id, user_id)),
-        ["idproject", "name", "description", "created_at"]
+        ["idproject", "txname", "txdescription", "dtcreated"]
     )
-    print("[DEBUG] raw project_df =", project_df)
 
     project_records = project_df.to_dict("records") if hasattr(project_df, "to_dict") else []
-    print(f"[DEBUG] project_records = {project_records}")
-
     if not project_records:
         flash("Project not found or unauthorized", "danger")
         return redirect("/projects")
@@ -145,17 +140,15 @@ def project_detail(project_id):
 
     chats_df = ensure_dataframe(
         db.read_sql_query("""
-            SELECT idchat, name, created_at
+            SELECT idchat, txname, dtcreated
             FROM chatbot_schema.chat
-            WHERE project_id = %s AND user_id = %s
-            ORDER BY created_at DESC;
+            WHERE idproject = %s AND idappuser = %s
+            ORDER BY dtcreated DESC;
         """, (project_id, user_id)),
-        ["idchat", "name", "created_at"]
+        ["idchat", "txname", "dtcreated"]
     )
 
     chats = chats_df.to_dict("records") if hasattr(chats_df, "to_dict") else []
-    print("[DEBUG] chats =", chats)
-
     sidebar_projects, unassigned_chats = get_sidebar_data(user_id)
 
     return render_template("project_detail.html",
