@@ -90,6 +90,7 @@ def rename_project(project_id):
 @project_bp.route("/projects/<int:project_id>/update_desc", methods=["POST"])
 @login_required
 def update_description(project_id):
+    print(f"[DEBUG] Description received: {request.form.get('description')}")
     result = Validator.check([
         (request.form.get("description"), "Project description", 500, False)
     ])

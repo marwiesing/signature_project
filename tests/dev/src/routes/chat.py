@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g, Response
+from threading import Thread
 from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 from tests.dev.src.utils.validator import Validator
 from tests.dev.src.utils.llm import LLMHelper
@@ -62,6 +63,17 @@ def get_sidebar_data(user_id):
         {"idchat": row[0], "txname": row[1]} for row in unassigned_df]
 
     return sidebar_projects, unassigned_chats
+
+def update_response_async(prompt, model_name, chat_id, id_message):
+    def run():
+        markdown_text, response_html = llm.query_ollama(prompt, model_name)
+        db.execute_query("""
+            UPDATE chatbot_schema.response
+            SET txcontent = %s,
+                txmarkdown = %s
+            WHERE idmessage = %s AND idchat = %s;
+        """, (response_html, markdown_text, id_message, chat_id))
+    Thread(target=run).start()
 
 @chat_bp.route("/chat")
 @login_required
@@ -127,10 +139,7 @@ def chat_view(chat_id):
         """, (chat_id,))
         model_name = model_result[0][0] if model_result else "deepseek-r1"
 
-        # 5. Send prompt to LLM
-        markdown_text, response_html = llm.query_ollama(prompt, model_name)
-
-        # 6. Store temporary placeholder first
+        # 5. Store temporary placeholder first
         db.execute_query("""
             INSERT INTO chatbot_schema.response (idchat, idmessage, idllm, txcontent, txmarkdown)
             VALUES (
@@ -142,15 +151,21 @@ def chat_view(chat_id):
             );
         """, (chat_id, id_message, chat_id))
 
-        # 7. Then update the response after model finishes
-        db.execute_query("""
-            UPDATE chatbot_schema.response
-            SET txcontent = %s,
-                txmarkdown = %s
-            WHERE idmessage = %s AND idchat = %s;
-        """, (response_html, markdown_text, id_message, chat_id))
+    #     # 6. Send prompt to LLM
+    #     markdown_text, response_html = llm.query_ollama(prompt, model_name)
+
+    #     # 7. Then update the response after model finishes
+    #     db.execute_query("""
+    #         UPDATE chatbot_schema.response
+    #         SET txcontent = %s,
+    #             txmarkdown = %s
+    #         WHERE idmessage = %s AND idchat = %s;
+    #     """, (response_html, markdown_text, id_message, chat_id))
 
 
+    #     return redirect(f"/chat/{chat_id}")
+
+        update_response_async(prompt, model_name, chat_id, id_message)
         return redirect(f"/chat/{chat_id}")
 
     # === GET METHOD ===

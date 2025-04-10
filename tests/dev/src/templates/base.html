@@ -50,7 +50,7 @@
                             <button type="submit" class="btn btn-sm btn-outline-primary w-100">Rename</button>
                         </form>
                         <form method="POST" action="/projects/{{ project.idproject }}/update_desc" class="mb-2">
-                            <input type="text" name="new_description" placeholder="New description (max 500 chars)" class="form-control form-control-sm mb-1" maxlength="500">
+                            <input type="text" name="description" placeholder="New description (max 500 chars)" class="form-control form-control-sm mb-1" maxlength="500">
                             <button type="submit" class="btn btn-sm btn-outline-secondary w-100">Update Desc</button>
                         </form>
                         <form method="POST" action="/projects/{{ project.idproject }}/delete" 

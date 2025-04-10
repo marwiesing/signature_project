@@ -54,7 +54,7 @@
 
 <!-- Message Input -->
 <form method="POST" class="d-flex align-items-start gap-2" id="chatForm" onsubmit="lockForm()">
-  <textarea name="content" id="chatInput" rows="5" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
+  <textarea name="content" id="chatInput" rows="3" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
   <button type="submit" class="btn btn-primary" id="sendButton">Send</button>
 </form>
 
@@ -62,10 +62,22 @@
 <script>
   window.addEventListener("load", () => {
     const chatBox = document.getElementById("chatBox");
+
     if (chatBox) {
+      // Auto-scroll to bottom
       requestAnimationFrame(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
       });
+
+      // Auto-refresh if "🧠 Thinking..." is visible
+      const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
+        .some(el => el.textContent.includes("🧠 Thinking..."));
+
+      if (hasThinking) {
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000); // ⏱️ Check again in 3 seconds
+      }
     }
   });
 
@@ -84,6 +96,7 @@
     sendButton.classList.add("btn-secondary");
   }
 </script>
+
 
 
 <style>
