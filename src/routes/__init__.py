@@ -2,7 +2,7 @@ from flask import Flask
 from .auth import auth_bp
 from .chat import chat_bp
 from .project import project_bp
-from ..utils.formatting import format_timestamp 
+from src.utils.formatting import format_timestamp 
 from markdown import markdown
 import os
 

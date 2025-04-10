@@ -1,7 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, flash, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from ..utils.postgresdatabaseconnection import PostgresDatabaseConnection
-from ..utils.llm import LLMHelper
+from src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
+from src.utils.llm import LLMHelper
 
 
 

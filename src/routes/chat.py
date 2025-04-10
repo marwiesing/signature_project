@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, session, flash, g, Response
 from threading import Thread
-from ..utils.postgresdatabaseconnection import PostgresDatabaseConnection
-from ..utils.validator import Validator
-from ..utils.llm import LLMHelper
+from src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
+from src.utils.validator import Validator
+from src.utils.llm import LLMHelper
 import pandas as pd
 
 chat_bp = Blueprint("chat", __name__)

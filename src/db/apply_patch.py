@@ -1,4 +1,4 @@
-from ..utils.postgresdatabaseconnection import PostgresDatabaseConnection
+from src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 # Define patch file paths
 patch_files = [
