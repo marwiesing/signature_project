@@ -2,7 +2,7 @@
 set -e
 
 echo "Checking database schema..."
-python src/apply_patch.py
+python src/db/apply_patch.py
 
 echo "Starting Gunicorn server..."
 exec gunicorn --bind 0.0.0.0:5000 "src.app:create_app()"

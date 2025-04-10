@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ project.txname | safe }}{% endblock %}
+{% block content %}
+<h3>{{ project.txname | safe }}</h3>
+<p class="text-muted">{{ project.txdescription or "No description yet." }}</p>
+<p class="text-muted">🕒 Created: {{ project.dtcreated|format_timestamp }}</p> 
+
+<!-- Add new chat to project (only one clean button) -->
+<form method="POST" action="/projects/{{ project.idproject }}/new_chat">
+  <button type="submit" class="btn btn-success mb-3">
+      + New Chat in this Project
+  </button>
+</form>
+
+{% if chats %}
+  <ul class="list-group list-group-flush">
+    {% for chat in chats %}
+      <li class="list-group-item bg-dark text-white d-flex justify-content-between align-items-center">
+        <a href="/chat/{{ chat.idchat }}" class="text-light text-decoration-none">
+          {{ (chat.txname or "Untitled Chat") | safe }}
+        </a>
+        <small class="text-muted">{{ chat.dtcreated | format_timestamp }}</small>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p class="text-muted">No chats in this project yet.</p>
+{% endif %}
+
+<a href="/projects" class="btn btn-outline-secondary mt-4">← Back to All Projects</a>
+{% endblock %}
