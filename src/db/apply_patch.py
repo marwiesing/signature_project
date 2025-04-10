@@ -2,9 +2,9 @@ from src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 # Define patch file paths
 patch_files = [
-    "../sql/drop_schema.sql",
-    "../sql/create_schema.sql",
-    "../sql/initialize_schema.sql"
+    "src/sql/drop_schema.sql",
+    "src/sql/create_schema.sql",
+    "src/sql/initialize_schema.sql"
 ]
 
 def apply_patch(db, paths):
