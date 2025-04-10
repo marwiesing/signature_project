@@ -1,6 +1,8 @@
 # utils/llm.py
 from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
-import os, requests, json
+import os, requests, json, re
+from flask import Markup
+import markdown
 from threading import Lock
 
 _lock = Lock()
@@ -17,7 +19,6 @@ class LLMHelper:
         if result is not None and not result.empty:
             return [{"id": row["idllm"], "name": row["txname"]} for _, row in result.iterrows()]
         return []
-
 
     def get_model_id_by_name(self, name):
         result = self.db.read_sql_query("""
@@ -42,7 +43,6 @@ class LLMHelper:
     def query_ollama(self, prompt: str, model: str) -> str:
         with _lock:
             try:
-                # print(f"[LLM] Querying model '{model}' with prompt: {prompt[:60]}...")
                 response = requests.post(
                     f"{self.endpoint}/api/generate",
                     json={
@@ -53,11 +53,19 @@ class LLMHelper:
                     timeout=60  # ⏱️ Increased timeout
                 )
                 response.raise_for_status()
-
                 data = response.json()
-                # print("[LLM] Response from Ollama:", data)
+                markdown_text = data.get("response", "").strip()
 
-                return data.get("response", "").strip()
+                # Optional: strip unwanted tags like <think>
+                markdown_text = re.sub(r"<think>.*?</think>", "", markdown_text, flags=re.DOTALL)
+
+                # Convert markdown to safe HTML
+                html = markdown.markdown(
+                    markdown_text,
+                    extensions=["fenced_code", "codehilite", "tables", "nl2br"]
+                )
+
+                return markdown_text, Markup(html)
 
             except requests.exceptions.Timeout:
                 print("[LLM] Timeout: The model took too long to respond.")

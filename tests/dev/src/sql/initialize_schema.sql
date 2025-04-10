@@ -67,6 +67,7 @@ CREATE TABLE chatbot_schema.response (
     idMessage INTEGER NOT NULL REFERENCES chatbot_schema.message(idMessage) ON DELETE CASCADE,
     idLLM INTEGER NOT NULL REFERENCES chatbot_schema.llm(idLLM) ON DELETE RESTRICT,
     txContent TEXT NOT NULL,
+    txMarkdown TEXT NOT NULL,
     dtCreated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     idAnswer INTEGER DEFAULT 0
 );

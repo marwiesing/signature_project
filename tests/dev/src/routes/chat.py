@@ -128,15 +128,16 @@ def chat_view(chat_id):
         model_name = model_result[0][0] if model_result else "deepseek-r1"
 
         # 5. Send prompt to LLM
-        response_text = llm.query_ollama(prompt, model_name)
+        markdown_text, response_html = llm.query_ollama(prompt, model_name)
 
         # 6. Store temporary placeholder first
         db.execute_query("""
-            INSERT INTO chatbot_schema.response (idchat, idmessage, idllm, txcontent)
+            INSERT INTO chatbot_schema.response (idchat, idmessage, idllm, txcontent, txmarkdown)
             VALUES (
                 %s,
                 %s,
                 (SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s),
+                '🧠 Thinking...',
                 '🧠 Thinking...'
             );
         """, (chat_id, id_message, chat_id))
@@ -144,9 +145,10 @@ def chat_view(chat_id):
         # 7. Then update the response after model finishes
         db.execute_query("""
             UPDATE chatbot_schema.response
-            SET txcontent = %s
+            SET txcontent = %s,
+                txmarkdown = %s
             WHERE idmessage = %s AND idchat = %s;
-        """, (response_text, id_message, chat_id))
+        """, (response_html, markdown_text, id_message, chat_id))
 
 
         return redirect(f"/chat/{chat_id}")
@@ -334,7 +336,7 @@ def download_chat_markdown(chat_id):
         SELECT
             m.txContent AS message,
             m.dtCreated AS message_time,
-            r.txContent AS response,
+            r.txmarkdown AS response, 
             r.dtCreated AS response_time
         FROM chatbot_schema.message m
         LEFT JOIN chatbot_schema.response r ON m.idmessage = r.idmessage

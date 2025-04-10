@@ -35,7 +35,7 @@
 
         {% if pair.response %}
         <!-- Bot Response -->
-        <div class="card ms-4 border-secondary {% if pair.response == '🧠 Thinking...' %}bg-warning-subtle{% else %}bg-light{% endif %}">
+        <div class="card ms-4 {% if pair.response == '🧠 Thinking...' %}border-warning-subtle bg-warning-subtle{% else %}border-secondary bg-light{% endif %}">
           <div class="card-body p-2">
             <div class="d-flex justify-content-between align-items-start">
               <span><strong>🧠 Bot</strong></span>
@@ -54,7 +54,7 @@
 
 <!-- Message Input -->
 <form method="POST" class="d-flex align-items-start gap-2" id="chatForm" onsubmit="lockForm()">
-  <textarea name="content" id="chatInput" rows="2" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
+  <textarea name="content" id="chatInput" rows="5" class="form-control" placeholder="Type your message... (max 5000 chars)" maxlength="5000" required></textarea>
   <button type="submit" class="btn btn-primary" id="sendButton">Send</button>
 </form>
 

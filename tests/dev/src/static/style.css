@@ -205,3 +205,11 @@ aside::-webkit-scrollbar-thumb {
 .text-muted {
     color: #ced4da !important;
 }
+
+.border-warning-subtle {
+    border: 1px solid #f0ad4e !important;
+}
+.bg-warning-subtle {
+    background-color: #fff3cd !important;
+    color: #212529 !important;
+}
