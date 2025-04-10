@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # Define schema and required table(s)
 SCHEMA_NAME = "chatbot_schema"
-REQUIRED_TABLES = ["app_user", "project", "chat", "message"]
+REQUIRED_TABLES = ["app_user", "project", "chat", "message", "response"]
 
 def schema_exists(connection):
     check_query = text("""

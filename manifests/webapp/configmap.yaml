@@ -8,3 +8,4 @@ data:
   PSQL_DB: chatbot_db
   PSQL_USER: chatbot_user
   PSQL_PORT: "5432"
+  OLLAMA_HOST: "http://192.168.0.42:11434"
