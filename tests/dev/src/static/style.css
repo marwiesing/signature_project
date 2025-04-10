@@ -50,6 +50,55 @@ button.btn.btn-link:hover {
     color: #0dcaf0;
 }
 
+/* Sidebar dark mode */
+.sidebar-dark a {
+    color: #ddd;
+  }
+  .sidebar-dark a:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
+  .sidebar-dark .dropdown-menu {
+    background-color: #2c2f33;
+    color: #f8f9fa;
+  }
+  .sidebar-dark .dropdown-menu .btn {
+    color: #fff;
+  }
+  .sidebar-dark .btn-outline-primary,
+  .sidebar-dark .btn-outline-secondary,
+  .sidebar-dark .btn-outline-danger,
+  .sidebar-dark .btn-outline-success,
+  .sidebar-dark .btn-outline-warning {
+    color: #ccc;
+    border-color: #555;
+  }
+  .sidebar-dark .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: #fff;
+  }
+
+/* Red delete button inside sidebar dropdowns */
+.sidebar-dark .btn-outline-danger {
+    color: #dc3545 !important;                /* Red text */
+    border-color: #dc3545 !important;          /* Red border */
+}
+.sidebar-dark .btn-outline-danger:hover {
+    background-color: #dc3545;      /* Red background */
+    color: #fff;                    /* White text on hover */
+}
+
+/* Make sure general danger buttons are styled in dark mode too */
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+.btn-outline-danger:hover {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+}
+
+
 /* Others header */
 aside strong {
     color: #adb5bd;

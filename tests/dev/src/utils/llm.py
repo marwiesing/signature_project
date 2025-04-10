@@ -42,7 +42,7 @@ class LLMHelper:
     def query_ollama(self, prompt: str, model: str) -> str:
         with _lock:
             try:
-                print(f"[LLM] Querying model '{model}' with prompt: {prompt[:60]}...")
+                # print(f"[LLM] Querying model '{model}' with prompt: {prompt[:60]}...")
                 response = requests.post(
                     f"{self.endpoint}/api/generate",
                     json={
@@ -55,7 +55,7 @@ class LLMHelper:
                 response.raise_for_status()
 
                 data = response.json()
-                print("[LLM] Response from Ollama:", data)
+                # print("[LLM] Response from Ollama:", data)
 
                 return data.get("response", "").strip()
 
