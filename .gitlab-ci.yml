@@ -6,6 +6,7 @@ variables:
   IMAGE_NAME: "192.168.0.100:5050/homelab/signature_project"
   DOCKER_TLS_CERTDIR: ""
   DOCKER_HOST: "tcp://docker:2375"
+  GIT_DEPTH: 0
 
 build:
   stage: build
