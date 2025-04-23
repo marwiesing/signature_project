@@ -1,5 +1,8 @@
-# signature_project
+# Signature Project
 
+[![Mirror on GitHub](https://img.shields.io/badge/Mirror-GitHub-blue?logo=github)](https://github.com/marwiesing/signature_project)
+
+This project is a Flask-based chatbot with PostgreSQL and LLM integration...
 
 
 ## Getting started

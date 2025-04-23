@@ -45,8 +45,12 @@ mirror-to-github:
   - git config --global user.name "GitLab CI Bot"
   - git config --global user.email "ci@homelab.local"
   script:
+  - >
+    echo "📝 Commit: ${CI_COMMIT_TITLE} by ${GITLAB_USER_NAME}"
+  - git log -1 --oneline
   - echo "🌍 Pushing latest commit to GitHub mirror..."
   - git remote add github git@github.com:marwiesing/signature_project.git || true
   - git push --force github HEAD:main
+  - git push github --tags
   only:
   - main
