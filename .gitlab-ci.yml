@@ -1,5 +1,6 @@
 stages:
 - build
+- mirror
 
 variables:
   IMAGE_NAME: "192.168.0.100:5050/homelab/signature_project"
@@ -28,5 +29,23 @@ build:
   - envsubst < manifests/webapp/secret.yaml.template > manifests/webapp/secret.yaml
   - echo "✅ Secret manifest ready for ArgoCD sync"
   ###################
+  only:
+  - main
+
+mirror-to-github:
+  stage: mirror
+  image: alpine:latest
+  before_script:
+  - apk add --no-cache openssh git
+  - mkdir -p ~/.ssh
+  - echo "$GITHUB_DEPLOY_KEY" > ~/.ssh/id_ed25519
+  - chmod 600 ~/.ssh/id_ed25519
+  - ssh-keyscan github.com >> ~/.ssh/known_hosts
+  - git config --global user.name "GitLab CI Bot"
+  - git config --global user.email "ci@homelab.local"
+  script:
+  - echo "🌍 Pushing latest commit to GitHub mirror..."
+  - git remote add github git@github.com:marwiesing/signature_project.git || true
+  - git push --force github HEAD:main
   only:
   - main
