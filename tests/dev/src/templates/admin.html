@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<ul>
+    <li>Total Users: {{ stats.users }}</li>
+    <li>Total Chats: {{ stats.chats }}</li>
+</ul>
+<p>Future: Promote users, view logs, assign roles, view model usage...</p>
+{% endblock %}

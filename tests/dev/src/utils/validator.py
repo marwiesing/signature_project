@@ -1,7 +1,7 @@
 # validators.py (placed next to app.py/config.py)
-
 from flask import flash
 import html
+from email_validator import validate_email, EmailNotValidError
 
 class Validator:
     @staticmethod
@@ -22,3 +22,15 @@ class Validator:
             val = html.escape(val.strip()) if val else ""
             results.append(val)
         return results
+    
+    @staticmethod
+    def check_email(email):
+        """
+        Validate and sanitize email
+        """
+        try:
+            valid = validate_email(email)
+            return valid.email
+        except EmailNotValidError as e:
+            flash(str(e), "danger")
+            return "Invalid email address."

@@ -1,5 +1,7 @@
-from tests.dev.src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
-
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 def run_control_sql():
     patch_path = "tests/dev/src/sql/control.sql"
