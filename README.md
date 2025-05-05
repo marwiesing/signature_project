@@ -35,7 +35,7 @@ Das Projekt wurde entwickelt, um eine sichere, unabhängige Plattform für inter
 | **Datenbank**           | PostgreSQL |
 | **LLM-Integration**     | Ollama + lokale Modelle (DeepSeek Coder / DeepSeek R1) |
 | **Deployment**          | Docker, GitLab CI/CD, ArgoCD (GitOps) |
-| **Monitoring**          | Prometheus, Grafana, Loki, Heimdall |
+| **Monitoring**          | Prometheus, Grafana |
 | **Backups**             | Servicebasiert, täglich, versioniert |
 
 ---
@@ -65,17 +65,17 @@ Weitere Details zur Installation finden sich direkt im Projekt-Repository.
 
 ## Projektstatus
 
-✅ Stabile Version veröffentlicht  
+✅ Stabile Version V1.0.0 veröffentlicht  
 ✅ Volle Funktionalität implementiert  
-🔜 Geplante Erweiterungen: zusätzliche Modellunterstützung, Chat-Import, erweiterte Nutzerrollen
+🔜 Geplante Erweiterungen: zusätzliche Modellunterstützung, erweiterte Nutzerrollen
 
 ---
 
 ## Verweise
 
-- Ollama: [https://ollama.ai](https://ollama.ai)
-- DeepSeek Models: [https://deepseek.com](https://deepseek.com)
-- Bootstrap 5: [https://getbootstrap.com](https://getbootstrap.com)
+- Ollama: [https://ollama.com](https://ollama.com)
+- DeepSeek Coder: [https://ollama.com/library/deepseek-coder](https://ollama.com/library/deepseek-coder)
+- DeepSeek R1: [https://ollama.com/library/deepseek-r1](https://ollama.com/library/deepseek-r1)
 
 ---
 
