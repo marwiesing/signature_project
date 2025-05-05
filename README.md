@@ -15,14 +15,13 @@ Das Projekt wurde entwickelt, um eine sichere, unabhängige Plattform für inter
 
 ## Hauptfunktionen
 
-- **Mehrbenutzersystem** mit sicherer Registrierung, Login und rollenbasierter Zugriffskontrolle (RBAC)
-- **Projekt- und Chatverwaltung** mit übersichtlicher Sidebar und Drag-and-Drop-ähnlicher Zuordnung
+- **Mehrbenutzersystem** Registrierung und Login 
+- **Projekt- und Chatverwaltung** mit übersichtlicher Sidebar
 - **Interaktive Chatoberfläche** mit Markdown-Rendering und Scrollmanagement
 - **Integration lokaler LLMs** (DeepSeek Coder / R1) über Ollama-API
 - **Exportfunktion**: Chats als Markdown-Datei herunterladen
 - **Persistente Speicherung** aller Daten in einer strukturierten PostgreSQL-Datenbank
 - **Containerisierung** mit automatisierten Build- und Deployment-Prozessen (Docker, GitLab CI/CD, ArgoCD)
-- **Überwachung und Backup** über Prometheus, Loki, Grafana und automatisierte Backup-Skripte
 
 ---
 
@@ -35,8 +34,7 @@ Das Projekt wurde entwickelt, um eine sichere, unabhängige Plattform für inter
 | **Datenbank**           | PostgreSQL |
 | **LLM-Integration**     | Ollama + lokale Modelle (DeepSeek Coder / DeepSeek R1) |
 | **Deployment**          | Docker, GitLab CI/CD, ArgoCD (GitOps) |
-| **Monitoring**          | Prometheus, Grafana |
-| **Backups**             | Servicebasiert, täglich, versioniert |
+
 
 ---
 
