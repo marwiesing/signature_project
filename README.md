@@ -71,12 +71,6 @@ Weitere Details zur Installation finden sich direkt im Projekt-Repository.
 
 ---
 
-## Lizenz
-
-Dieses Projekt wird unter der MIT-Lizenz bereitgestellt. Details siehe `LICENSE`-Datei.
-
----
-
 ## Verweise
 
 - Ollama: [https://ollama.ai](https://ollama.ai)
