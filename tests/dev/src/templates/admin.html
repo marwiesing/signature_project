@@ -1,10 +1,157 @@
 {% extends "base.html" %}
 {% block title %}Admin Dashboard{% endblock %}
 {% block content %}
+
 <h2>Admin Dashboard</h2>
+
 <ul>
     <li>Total Users: {{ stats.users }}</li>
     <li>Total Chats: {{ stats.chats }}</li>
 </ul>
-<p>Future: Promote users, view logs, assign roles, view model usage...</p>
+
+<hr>
+<h4>Registered Users</h4>
+<table class="table table-dark table-bordered table-sm">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Created</th>
+            <th>Projects</th>
+            <th>Chats</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>
+                {% if user[3] == 'Admin' %}
+                  <span class="badge bg-danger">Admin</span>
+                {% else %}
+                  <span class="badge bg-secondary">User</span>
+                {% endif %}
+            </td>
+            <td>{{ user[4]|format_timestamp }}</td>
+            <td>{{ user[5] }}</td>
+            <td>{{ user[6] }}</td>
+            <td>
+                {% if user[3] == 'User' %}
+                    <a class="btn btn-sm btn-outline-warning" href="/admin/promote/{{ user[0] }}">Promote</a>
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+<h4>🧠 GPU Status (Linux Mint VM)</h4>
+
+<div class="mb-3">
+  <button class="btn btn-sm btn-primary" onclick="startGpuUpdates()">Start</button>
+  <button class="btn btn-sm btn-danger" onclick="stopGpuUpdates()">Stop</button>
+</div>
+
+<canvas id="gpuChart" class="bg-dark p-2 rounded" style="max-width: 600px;"></canvas>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+let gpuChart;
+let gpuTimer = null;
+let labels = [];
+let gpuData = [];
+let memData = [];
+
+function initChart() {
+  const ctx = document.getElementById('gpuChart').getContext('2d');
+  gpuChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: 'GPU Utilization (%)',
+          data: gpuData,
+          borderWidth: 2,
+          borderColor: 'rgb(255, 99, 132)',
+          fill: false,
+          tension: 0.2,
+        },
+        {
+          label: 'Memory Used (MiB)',
+          data: memData,
+          borderWidth: 2,
+          borderColor: 'rgb(54, 162, 235)',
+          fill: false,
+          tension: 0.2,
+        }
+      ]
+    },
+    options: {
+      animation: false,
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: '#fff' } }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#aaa' },
+          display: false
+        },
+        y: {
+          ticks: { color: '#aaa' },
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+function fetchGpuData() {
+  fetch("http://192.168.0.42:5555/gpu")
+    .then(res => res.json())
+    .then(data => {
+      const now = new Date().toLocaleTimeString();
+      labels.push(now);
+      gpuData.push(parseInt(data.gpu_util));
+      memData.push(parseInt(data.mem_used));
+
+      if (labels.length > 40) {
+        labels.shift();
+        gpuData.shift();
+        memData.shift();
+      }
+
+      gpuChart.update();
+    })
+    .catch(err => {
+      console.error("GPU API Error:", err);
+    });
+}
+
+function startGpuUpdates() {
+  if (!gpuTimer) {
+    fetchGpuData();
+    gpuTimer = setInterval(fetchGpuData, 500);
+  }
+}
+
+function stopGpuUpdates() {
+  clearInterval(gpuTimer);
+  gpuTimer = null;
+}
+
+document.addEventListener("DOMContentLoaded", initChart);
+</script>
+
 {% endblock %}

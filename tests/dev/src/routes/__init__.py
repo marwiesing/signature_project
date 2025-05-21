@@ -2,6 +2,7 @@ from flask import Flask
 from .auth import auth_bp
 from .chat import chat_bp
 from .project import project_bp
+from .admin import admin_bp 
 from ..utils.formatting import format_timestamp 
 from markdown import markdown
 import os
@@ -20,5 +21,6 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(project_bp)
+    app.register_blueprint(admin_bp)
 
     return app
