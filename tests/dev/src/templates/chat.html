@@ -3,7 +3,8 @@
 {% block content %}
 
 <h3 class="d-flex justify-content-between align-items-center">
-  <span>Chat (Model: <strong>{{ current_model_name }}</strong>)</span>
+  <!-- <span>Chat (Model: <strong>{{ current_model_name }}</strong>)</span> -->
+  <span>Chat (Model: <strong>{{ current_model_short }}</strong>)</span>
   <form method="POST" action="/chat/{{ chat_id }}/set_model" class="d-flex align-items-center gap-2">
     <select name="llm_id" class="form-select form-select-sm">
       {% for model in llm_models %}
@@ -38,7 +39,8 @@
         <div class="card ms-4 {% if pair.response == '🧠 Thinking...' %}border-warning-subtle bg-warning-subtle{% else %}border-secondary bg-light{% endif %}">
           <div class="card-body p-2">
             <div class="d-flex justify-content-between align-items-start">
-              <span><strong>🧠 Bot</strong></span>
+              <!-- <span><strong>🧠 Bot</strong></span> -->
+              <span><strong>🧠 Bot ({{ pair.response_short }})</strong></span>
               <small class="text-muted">{{ pair.response_time | format_timestamp }}</small>
             </div>
             <div class="mt-1 message-text">{{ pair.response | safe }}</div>

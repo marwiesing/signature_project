@@ -56,11 +56,14 @@
 <h4>🧠 GPU Status (Linux Mint VM)</h4>
 
 <div class="mb-3">
-  <button class="btn btn-sm btn-primary" onclick="startGpuUpdates()">Start</button>
-  <button class="btn btn-sm btn-danger" onclick="stopGpuUpdates()">Stop</button>
-</div>
+    <span class="me-2">Recording:</span>
+    <button id="startBtn" class="btn btn-sm btn-success" onclick="startGpuUpdates()">Start</button>
+    <button id="stopBtn" class="btn btn-sm btn-secondary" onclick="stopGpuUpdates()" disabled>Stop</button>
+  </div>
 
-<canvas id="gpuChart" class="bg-dark p-2 rounded" style="max-width: 600px;"></canvas>
+<div style="max-width: 900px;">
+    <canvas id="gpuChart" class="bg-dark p-2 rounded" style="max-width: 100%; height: 400px;"></canvas>
+</div>
 
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -68,9 +71,10 @@
 <script>
 let gpuChart;
 let gpuTimer = null;
-let labels = [];
 let gpuData = [];
 let memData = [];
+let labels = [];
+const MAX_POINTS = 40;
 
 function initChart() {
   const ctx = document.getElementById('gpuChart').getContext('2d');
@@ -80,37 +84,53 @@ function initChart() {
       labels: labels,
       datasets: [
         {
-          label: 'GPU Utilization (%)',
+          label: 'GPU Util (%)',
           data: gpuData,
           borderWidth: 2,
-          borderColor: 'rgb(255, 99, 132)',
-          fill: false,
-          tension: 0.2,
+          borderColor: 'rgb(0,255,100)',
+          backgroundColor: 'rgba(0,255,100,0.2)',
+          fill: true,
+          tension: 0.2
         },
         {
-          label: 'Memory Used (MiB)',
+          label: 'Memory Used (%)',
           data: memData,
           borderWidth: 2,
-          borderColor: 'rgb(54, 162, 235)',
-          fill: false,
-          tension: 0.2,
+          borderColor: 'rgb(0,150,255)',
+          backgroundColor: 'rgba(0,150,255,0.2)',
+          fill: true,
+          tension: 0.2
         }
       ]
     },
     options: {
-      animation: false,
       responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
       plugins: {
         legend: { labels: { color: '#fff' } }
       },
       scales: {
         x: {
-          ticks: { color: '#aaa' },
-          display: false
+          title: { display: true, text: 'Time (seconds ago)', color: '#aaa' },
+          ticks: {
+            color: '#aaa',
+            callback: function(value, index, values) {
+              return labels[index];
+            }
+          },
+          grid: { color: '#333' }
         },
         y: {
-          ticks: { color: '#aaa' },
-          beginAtZero: true
+          min: 0,
+          max: 100,
+          ticks: {
+            color: '#aaa',
+            stepSize: 25,
+            callback: value => value + '%'
+          },
+          title: { display: true, text: 'Utilization (%)', color: '#aaa' },
+          grid: { color: '#444' }
         }
       }
     }
@@ -121,15 +141,24 @@ function fetchGpuData() {
   fetch("http://192.168.0.42:5555/gpu")
     .then(res => res.json())
     .then(data => {
-      const now = new Date().toLocaleTimeString();
-      labels.push(now);
-      gpuData.push(parseInt(data.gpu_util));
-      memData.push(parseInt(data.mem_used));
+      const gpuPercent = parseInt(data.gpu_util.replace('%', '').trim());
+      const memUsedMiB = parseInt(data.mem_used.replace('MiB', '').trim());
+      const memPercent = Math.round((memUsedMiB / 8192) * 100);
 
-      if (labels.length > 40) {
-        labels.shift();
+      gpuData.push(gpuPercent);
+      memData.push(memPercent);
+      labels.push('0s'); // will be overwritten below
+
+      if (gpuData.length > MAX_POINTS) {
         gpuData.shift();
         memData.shift();
+        labels.shift();
+      }
+
+      // Recalculate labels as "seconds ago", with 0s on right
+      const len = labels.length;
+      for (let i = 0; i < len; i++) {
+        labels[i] = `${(len - 1 - i) * 0.5}s`;
       }
 
       gpuChart.update();
@@ -141,17 +170,21 @@ function fetchGpuData() {
 
 function startGpuUpdates() {
   if (!gpuTimer) {
-    fetchGpuData();
     gpuTimer = setInterval(fetchGpuData, 500);
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = false;
   }
 }
 
 function stopGpuUpdates() {
   clearInterval(gpuTimer);
   gpuTimer = null;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('stopBtn').disabled = true;
 }
 
 document.addEventListener("DOMContentLoaded", initChart);
 </script>
+
 
 {% endblock %}

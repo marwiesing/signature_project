@@ -108,3 +108,100 @@ That gives you a feeling of progress **immediately on refresh**.
   * Google login 🔑
   * User promotion UI 🔁
   * LLM usage stats 📊
+
+
+---
+---
+
+Absolutely — here’s a **professional and structured summary** you can include in your project documentation to wrap up the work done on the GPU Monitoring API and Admin Dashboard enhancements, along with a Phase 3 feature roadmap.
+
+---
+
+## ✅ Admin Dashboard + GPU Monitoring API (Flask CORS Integration)
+
+### 📌 Goal
+
+Enhance the Admin Dashboard to give administrators real-time insights into system usage — including GPU performance — and centralize all administrative tasks like user role management.
+
+---
+
+### 🛠️ What We Implemented
+
+#### 1. 🔧 **Flask-Based GPU Monitoring API**
+
+* A lightweight **Flask REST API** was built to expose local GPU metrics from the Linux Mint VM hosting Ollama + DeepSeek.
+* Key metrics exposed at `/gpu` endpoint:
+
+  * `gpu_util` – GPU utilization percentage
+  * `mem_used` – Memory usage (MiB)
+  * `mem_total` – Total GPU memory (MiB)
+
+#### 2. 🔓 **Cross-Origin API Access (CORS)**
+
+* Since the GPU API runs on a separate IP (`192.168.0.42:5555`), we enabled **CORS** to allow secure cross-origin requests from the Flask app running elsewhere in the cluster or on another machine.
+* This allows the Admin Dashboard (running at `127.0.0.1:5000`) to call the GPU API seamlessly without browser restrictions.
+
+#### 3. 📊 **Live GPU Utilization Chart in Admin Dashboard**
+
+* Added a responsive, dark-themed **Chart.js line chart** with two datasets:
+
+  * GPU Utilization (%)
+  * Memory Usage (% of 8192 MiB)
+* Features:
+
+  * Auto-refresh every 0.5 seconds (start/stop toggle)
+  * Timeline from `0s` (right) to `142s` (left)
+  * Fixed Y-axis scale (0% to 100%) with tick marks: `0`, `25`, `50`, `75`, `100`
+
+#### 4. 🧑‍💻 **User Listing + Role Management**
+
+* Enhanced the Admin Dashboard with:
+
+  * Count of total users and chats
+  * List of all registered users with:
+
+    * ID, username, email, role, created date
+    * Number of projects and chats
+    * "Promote to Admin" button for each user (where applicable)
+
+---
+
+### 📂 Files & Structure Affected
+
+| File               | Changes                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------- |
+| `admin.py`         | Added `@admin.route("/gpu")`, `promote_user()` function, and data aggregation logic |
+| `admin.html`       | Live Chart.js graph + user table with role badges                                   |
+| `gpu_api.py`       | Standalone Flask API for exposing GPU data                                          |
+| `systemd`          | Created a `gpu-api.service` to auto-start API on boot                               |
+| `requirements.txt` | Added `flask`, `flask-cors`, `pynvml` on the Linux Mint VM                          |
+
+---
+
+### 🚧 Open Phase 3 Features (Coming in v1.1)
+
+| Feature                   | Status   | Notes                                                                |
+| ------------------------- | -------- | -------------------------------------------------------------------- |
+| 🔐 **Google OAuth login** | ⏳ Next   | Will use `email` to auto-map identity and assign default "User" role |
+| ⚙️ **User Management UI** | Optional | Add buttons to demote Admins or deactivate users                     |
+| 📈 **Model usage stats**  | Optional | Count total prompts per user; show inference times                   |
+| 🔐 **2FA (TOTP)**         | Optional | Use QR-code and OTP verification (for local login only)              |
+
+---
+
+### ✅ Deployment-Ready
+
+* 🧠 GPU API runs as a **permanent background service** using `systemd`
+* 🔐 RBAC integrated at session level via `@require_role("Admin")`
+* 🖥️ Admin Dashboard is **production-friendly**, modular, and ready to extend
+
+---
+
+Let me know when you're ready to:
+
+* 🚀 Build the **Google OAuth Login**
+* 🔁 Add role demotion / deactivation features
+* 📊 Visualize per-user LLM usage
+* 🔐 Integrate optional TOTP-based 2FA
+
+You’ve officially wrapped up your **Admin + Monitoring Infrastructure** — cleanly, professionally, and extensibly. 💪

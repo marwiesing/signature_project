@@ -173,18 +173,22 @@ def chat_view(chat_id):
     # Sidebar: Projects + Chats
     sidebar_projects, unassigned = get_sidebar_data(user_id)
 
+### Try to get the llm.txShortname:
+
     # Current model info
     model_result = db.read_sql_query("""
         SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s;
     """, (chat_id,))
     current_model_id = model_result[0][0] if model_result else llm.get_default_model_id()
-    current_model_name = llm.get_model_name_by_id(current_model_id)
+#    current_model_name = llm.get_model_name_by_id(current_model_id)
+    current_model_short = next((m["short"] for m in llm_models if m["id"] == current_model_id),llm.get_model_name_by_id(current_model_id))
 
     # Fetch all user messages and LLM responses (paired)
     rows = db.read_sql_query("""
         SELECT
             m.txContent AS message,
             m.dtCreated AS message_time,
+            r.idllm AS response_llm_id,
             r.txContent AS response,
             r.dtCreated AS response_time
         FROM chatbot_schema.message m
@@ -193,12 +197,25 @@ def chat_view(chat_id):
         ORDER BY m.dtcreated ASC;
     """, (chat_id,))
 
-    message_pairs = [{
-        "message": row[0],
-        "message_time": row[1],
-        "response": row[2],
-        "response_time": row[3],
-    } for row in rows]
+#    message_pairs = [{
+#        "message": row[0],
+#        "message_time": row[1],
+#        "response": row[2],
+#        "response_time": row[3],
+#    } for row in rows]
+
+    message_pairs = []
+    for message, message_time, response_llm_id, response, response_time in rows:
+        resp_llm_id = response_llm_id or current_model_id
+        resp_short = next((m["short"] for m in llm_models if m["id"] == resp_llm_id),current_model_short)
+
+        message_pairs.append({
+            "message":       message,
+            "message_time":  message_time,
+            "response":      response,
+            "response_time": response_time,
+            "response_short": resp_short
+        })
 
     return render_template("chat.html",
         messages=message_pairs,
@@ -209,7 +226,8 @@ def chat_view(chat_id):
         show_chat_sidebar=True,
         llm_models=llm_models,
         current_model_id=current_model_id,
-        current_model_name=current_model_name
+#        current_model_name=current_model_name
+        current_model_short=current_model_short
     )
 
 @chat_bp.route("/chat/<int:chat_id>/rename", methods=["POST"])

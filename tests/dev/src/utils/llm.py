@@ -15,10 +15,13 @@ class LLMHelper:
 
     def get_all_models(self):
         result = self.db.read_sql_query("""
-            SELECT idllm, txname FROM chatbot_schema.llm ORDER BY idllm;
+            SELECT idllm, txname, txshortname FROM chatbot_schema.llm ORDER BY idllm;
         """)
         if result is not None and not result.empty:
-            return [{"id": row["idllm"], "name": row["txname"]} for _, row in result.iterrows()]
+            return [{"id": row["idllm"], 
+                     "name": row["txname"], 
+                     "short": row["txshortname"]} 
+                     for _, row in result.iterrows()]
         return []
 
     def get_model_id_by_name(self, name):
