@@ -72,10 +72,14 @@ class LLMHelper:
                 return markdown_text, Markup(html)
 
             except requests.exceptions.Timeout:
+                err_md ="⚠️ The model took too long to respond. Please try again."
+                err_html = markdown.markdown(err_md)                
                 print("[LLM] Timeout: The model took too long to respond.")
-                return "⚠️ The model took too long to respond. Please try again."
+                return err_md, Markup(err_html)
 
             except Exception as e:
+                err_md = "⚠️ Failed to get response from LLM"
+                err_html = markdown.markdown(err_md)
                 print(f"[LLM] Error querying Ollama: {e}")
-                return "⚠️ Failed to get response from LLM"
+                return err_md, Markup(err_html)
 

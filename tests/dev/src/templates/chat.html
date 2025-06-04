@@ -60,6 +60,8 @@
   <button type="submit" class="btn btn-primary" id="sendButton">Send</button>
 </form>
 
+<!-- Inline error placeholder (hidden by default) -->
+<div id="chatErrorText" class="text-danger mt-2" style="display: none;"></div>
 
 <script>
   window.addEventListener("load", () => {
@@ -70,7 +72,7 @@
       requestAnimationFrame(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
       });
-
+/*
       // Auto-refresh if "🧠 Thinking..." is visible
       const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
         .some(el => el.textContent.includes("🧠 Thinking..."));
@@ -79,13 +81,34 @@
         setTimeout(() => {
           window.location.reload();
         }, 3000); // ⏱️ Check again in 3 seconds
-      }
+*/
+      const hasError = Array.from(chatBox.querySelectorAll(".message-text"))
+          .some(el => el.textContent.includes("⚠️"));
+        if (hasError) {
+          const errorDiv = document.getElementById("chatErrorText");
+          errorDiv.textContent = "⚠️ LLM failed to respond. Please try again.";
+          errorDiv.style.display = "block";
+          return;
+        }
+
+        const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
+          .some(el => el.textContent.includes("🧠 Thinking..."));
+        if (hasThinking) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000);
+        }           
     }
   });
 
   function lockForm() {
     const input = document.getElementById("chatInput");
     const sendButton = document.getElementById("sendButton");
+    const errorDiv = document.getElementById("chatErrorText");
+    if (errorDiv) {
+      errorDiv.textContent = "";
+      errorDiv.style.display = "none";
+    }
 
     // Mark input read-only and visually grey it out
     input.readOnly = true;
