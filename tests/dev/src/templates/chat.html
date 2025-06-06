@@ -3,8 +3,17 @@
 {% block content %}
 
 <h3 class="d-flex justify-content-between align-items-center">
-  <!-- <span>Chat (Model: <strong>{{ current_model_name }}</strong>)</span> -->
-  <span>Chat (Model: <strong>{{ current_model_short }}</strong>)</span>
+  <span>
+    {% if project_name %}
+      {{ project_name }} &gt; {{ chat_name }} 
+    {% else %}
+      {{ chat_name }} 
+    {% endif %}
+    (Model: <strong>{{ current_model_short }}</strong>)
+  </span>
+  
+        
+<!--  <span>Chat (Model: <strong>{{ current_model_short }}</strong>)</span> -->
   <form method="POST" action="/chat/{{ chat_id }}/set_model" class="d-flex align-items-center gap-2">
     <select name="llm_id" class="form-select form-select-sm">
       {% for model in llm_models %}
@@ -72,31 +81,25 @@
       requestAnimationFrame(() => {
         chatBox.scrollTop = chatBox.scrollHeight;
       });
-/*
-      // Auto-refresh if "🧠 Thinking..." is visible
-      const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
-        .some(el => el.textContent.includes("🧠 Thinking..."));
 
-      if (hasThinking) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000); // ⏱️ Check again in 3 seconds
-*/
-      const hasError = Array.from(chatBox.querySelectorAll(".message-text"))
-          .some(el => el.textContent.includes("⚠️"));
-        if (hasError) {
-          const errorDiv = document.getElementById("chatErrorText");
-          errorDiv.textContent = "⚠️ LLM failed to respond. Please try again.";
-          errorDiv.style.display = "block";
-          return;
-        }
+     // Find only the last .message-text in the chat
+     const texts = Array.from(chatBox.querySelectorAll(".message-text"));
+     if (texts.length > 0) {
+       const lastText = texts[texts.length - 1].textContent;
+       if (lastText.includes("⚠️")) {
+         const errorDiv = document.getElementById("chatErrorText");
+         errorDiv.textContent = "⚠️ LLM failed to respond. Please try again.";
+         errorDiv.style.display = "block";
+         return;
+       }
+     }
 
         const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
           .some(el => el.textContent.includes("🧠 Thinking..."));
         if (hasThinking) {
           setTimeout(() => {
             window.location.reload();
-          }, 3000);
+          }, 3000); // ⏱️ Check again in 3 seconds
         }           
     }
   });
@@ -125,10 +128,6 @@
 
 
 <style>
-  .chat-box {
-    max-height: 400px;
-    overflow-y: auto;
-  }
   .message-text {
     white-space: pre-wrap;
   }

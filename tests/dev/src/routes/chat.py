@@ -173,7 +173,7 @@ def chat_view(chat_id):
     # Sidebar: Projects + Chats
     sidebar_projects, unassigned = get_sidebar_data(user_id)
 
-### Try to get the llm.txShortname:
+    ### Try to get the llm.txShortname:
 
     # Current model info
     model_result = db.read_sql_query("""
@@ -217,6 +217,25 @@ def chat_view(chat_id):
             "response_short": resp_short
         })
 
+    # ─── Fetch this chat's name and its project (if any) ──────────────────
+    info = db.read_sql_query("""
+        SELECT
+          c.txname   AS chat_name,
+          p.txname   AS project_name
+        FROM chatbot_schema.chat c
+        LEFT JOIN chatbot_schema.project p
+          ON c.idproject = p.idproject
+        WHERE c.idchat = %s;
+    """, (chat_id,))
+
+    if info:
+        # If the chat has a name and possibly a project
+        chat_name    = info[0][0]
+        project_name = info[0][1]
+    else:
+        chat_name    = "Chat"
+        project_name = None
+
     return render_template("chat.html",
         messages=message_pairs,
         username=session.get("username"),
@@ -226,8 +245,9 @@ def chat_view(chat_id):
         show_chat_sidebar=True,
         llm_models=llm_models,
         current_model_id=current_model_id,
-#        current_model_name=current_model_name
-        current_model_short=current_model_short
+        current_model_short=current_model_short,
+        chat_name=chat_name,
+        project_name=project_name
     )
 
 @chat_bp.route("/chat/<int:chat_id>/rename", methods=["POST"])
