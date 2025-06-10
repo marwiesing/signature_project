@@ -3,7 +3,17 @@
 {% block content %}
 
 <h3 class="d-flex justify-content-between align-items-center">
-  <span>Chat (Model: <strong>{{ current_model_name }}</strong>)</span>
+  <span>
+    {% if project_name %}
+      {{ project_name }} &gt; {{ chat_name }} 
+    {% else %}
+      {{ chat_name }} 
+    {% endif %}
+    (Model: <strong>{{ current_model_short }}</strong>)
+  </span>
+  
+        
+<!--  <span>Chat (Model: <strong>{{ current_model_short }}</strong>)</span> -->
   <form method="POST" action="/chat/{{ chat_id }}/set_model" class="d-flex align-items-center gap-2">
     <select name="llm_id" class="form-select form-select-sm">
       {% for model in llm_models %}
@@ -38,7 +48,8 @@
         <div class="card ms-4 {% if pair.response == '🧠 Thinking...' %}border-warning-subtle bg-warning-subtle{% else %}border-secondary bg-light{% endif %}">
           <div class="card-body p-2">
             <div class="d-flex justify-content-between align-items-start">
-              <span><strong>🧠 Bot</strong></span>
+              <!-- <span><strong>🧠 Bot</strong></span> -->
+              <span><strong>🧠 Bot ({{ pair.response_short }})</strong></span>
               <small class="text-muted">{{ pair.response_time | format_timestamp }}</small>
             </div>
             <div class="mt-1 message-text">{{ pair.response | safe }}</div>
@@ -58,6 +69,8 @@
   <button type="submit" class="btn btn-primary" id="sendButton">Send</button>
 </form>
 
+<!-- Inline error placeholder (hidden by default) -->
+<div id="chatErrorText" class="text-danger mt-2" style="display: none;"></div>
 
 <script>
   window.addEventListener("load", () => {
@@ -69,21 +82,36 @@
         chatBox.scrollTop = chatBox.scrollHeight;
       });
 
-      // Auto-refresh if "🧠 Thinking..." is visible
-      const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
-        .some(el => el.textContent.includes("🧠 Thinking..."));
+     // Find only the last .message-text in the chat
+     const texts = Array.from(chatBox.querySelectorAll(".message-text"));
+     if (texts.length > 0) {
+       const lastText = texts[texts.length - 1].textContent;
+       if (lastText.includes("⚠️")) {
+         const errorDiv = document.getElementById("chatErrorText");
+         errorDiv.textContent = "⚠️ LLM failed to respond. Please try again.";
+         errorDiv.style.display = "block";
+         return;
+       }
+     }
 
-      if (hasThinking) {
-        setTimeout(() => {
-          window.location.reload();
-        }, 3000); // ⏱️ Check again in 3 seconds
-      }
+        const hasThinking = Array.from(chatBox.querySelectorAll(".message-text"))
+          .some(el => el.textContent.includes("🧠 Thinking..."));
+        if (hasThinking) {
+          setTimeout(() => {
+            window.location.reload();
+          }, 3000); // ⏱️ Check again in 3 seconds
+        }           
     }
   });
 
   function lockForm() {
     const input = document.getElementById("chatInput");
     const sendButton = document.getElementById("sendButton");
+    const errorDiv = document.getElementById("chatErrorText");
+    if (errorDiv) {
+      errorDiv.textContent = "";
+      errorDiv.style.display = "none";
+    }
 
     // Mark input read-only and visually grey it out
     input.readOnly = true;
@@ -100,10 +128,6 @@
 
 
 <style>
-  .chat-box {
-    max-height: 400px;
-    overflow-y: auto;
-  }
   .message-text {
     white-space: pre-wrap;
   }

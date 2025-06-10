@@ -111,7 +111,8 @@ hr {
 
 /* Chat box */
 .chat-box {
-    max-height: 400px;
+    max-height: 60vh;
+    max-width: 2250px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;

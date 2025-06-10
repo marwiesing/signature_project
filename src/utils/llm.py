@@ -14,10 +14,13 @@ class LLMHelper:
 
     def get_all_models(self):
         result = self.db.read_sql_query("""
-            SELECT idllm, txname FROM chatbot_schema.llm ORDER BY idllm;
+            SELECT idllm, txname, txshortname FROM chatbot_schema.llm ORDER BY idllm;
         """)
         if result is not None and not result.empty:
-            return [{"id": row["idllm"], "name": row["txname"]} for _, row in result.iterrows()]
+            return [{"id": row["idllm"], 
+                     "name": row["txname"], 
+                     "short": row["txshortname"]} 
+                     for _, row in result.iterrows()]
         return []
 
     def get_model_id_by_name(self, name):
@@ -68,10 +71,13 @@ class LLMHelper:
                 return markdown_text, Markup(html)
 
             except requests.exceptions.Timeout:
+                err_md ="⚠️ The model took too long to respond. Please try again."
+                err_html = markdown.markdown(err_md)                
                 print("[LLM] Timeout: The model took too long to respond.")
-                return "⚠️ The model took too long to respond. Please try again."
+                return err_md, Markup(err_html)
 
             except Exception as e:
+                err_md = "⚠️ Failed to get response from LLM"
+                err_html = markdown.markdown(err_md)
                 print(f"[LLM] Error querying Ollama: {e}")
-                return "⚠️ Failed to get response from LLM"
-
+                return err_md, Markup(err_html)
