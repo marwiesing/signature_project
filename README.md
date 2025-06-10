@@ -76,7 +76,7 @@ Weitere Details zur Installation finden sich direkt im Projekt-Repository.
 * Projektliste/UI: Layout-Update, Felder für Name/Beschreibung/Created korrigiert
 * Chat-Formular: Inline-Fehlermeldung, scrollbare & widths-lock für .chat-box
 * Templates & Routen: Datenübergabe und Paare-Logik optimiert
-
+* Admin-Dashboard: Statistiken und Benutzerverwaltung mit Beförderungsfunktion
 
 ---
 
