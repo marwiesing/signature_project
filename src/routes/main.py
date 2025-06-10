@@ -114,3 +114,4 @@ def logout():
     session.clear()
     flash("Logged out", "info")
     return redirect("/")
+

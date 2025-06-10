@@ -2,7 +2,7 @@ from src.utils.postgresdatabaseconnection import PostgresDatabaseConnection
 
 
 def run_control_sql():
-    patch_path = "../sql/control.sql"
+    patch_path = "src/sql/control.sql"
     with open(patch_path, "r") as f:
         sql = f.read()
 

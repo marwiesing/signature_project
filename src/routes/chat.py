@@ -151,6 +151,20 @@ def chat_view(chat_id):
             );
         """, (chat_id, id_message, chat_id))
 
+    #     # 6. Send prompt to LLM
+    #     markdown_text, response_html = llm.query_ollama(prompt, model_name)
+
+    #     # 7. Then update the response after model finishes
+    #     db.execute_query("""
+    #         UPDATE chatbot_schema.response
+    #         SET txcontent = %s,
+    #             txmarkdown = %s
+    #         WHERE idmessage = %s AND idchat = %s;
+    #     """, (response_html, markdown_text, id_message, chat_id))
+
+
+    #     return redirect(f"/chat/{chat_id}")
+
         update_response_async(prompt, model_name, chat_id, id_message)
         return redirect(f"/chat/{chat_id}")
 
@@ -159,18 +173,22 @@ def chat_view(chat_id):
     # Sidebar: Projects + Chats
     sidebar_projects, unassigned = get_sidebar_data(user_id)
 
+    ### Try to get the llm.txShortname:
+
     # Current model info
     model_result = db.read_sql_query("""
         SELECT idllm FROM chatbot_schema.chat WHERE idchat = %s;
     """, (chat_id,))
     current_model_id = model_result[0][0] if model_result else llm.get_default_model_id()
-    current_model_name = llm.get_model_name_by_id(current_model_id)
+#    current_model_name = llm.get_model_name_by_id(current_model_id)
+    current_model_short = next((m["short"] for m in llm_models if m["id"] == current_model_id),llm.get_model_name_by_id(current_model_id))
 
     # Fetch all user messages and LLM responses (paired)
     rows = db.read_sql_query("""
         SELECT
             m.txContent AS message,
             m.dtCreated AS message_time,
+            r.idllm AS response_llm_id,
             r.txContent AS response,
             r.dtCreated AS response_time
         FROM chatbot_schema.message m
@@ -179,12 +197,44 @@ def chat_view(chat_id):
         ORDER BY m.dtcreated ASC;
     """, (chat_id,))
 
-    message_pairs = [{
-        "message": row[0],
-        "message_time": row[1],
-        "response": row[2],
-        "response_time": row[3],
-    } for row in rows]
+#    message_pairs = [{
+#        "message": row[0],
+#        "message_time": row[1],
+#        "response": row[2],
+#        "response_time": row[3],
+#    } for row in rows]
+
+    message_pairs = []
+    for message, message_time, response_llm_id, response, response_time in rows:
+        resp_llm_id = response_llm_id or current_model_id
+        resp_short = next((m["short"] for m in llm_models if m["id"] == resp_llm_id),current_model_short)
+
+        message_pairs.append({
+            "message":       message,
+            "message_time":  message_time,
+            "response":      response,
+            "response_time": response_time,
+            "response_short": resp_short
+        })
+
+    # ─── Fetch this chat's name and its project (if any) ──────────────────
+    info = db.read_sql_query("""
+        SELECT
+          c.txname   AS chat_name,
+          p.txname   AS project_name
+        FROM chatbot_schema.chat c
+        LEFT JOIN chatbot_schema.project p
+          ON c.idproject = p.idproject
+        WHERE c.idchat = %s;
+    """, (chat_id,))
+
+    if info:
+        # If the chat has a name and possibly a project
+        chat_name    = info[0][0]
+        project_name = info[0][1]
+    else:
+        chat_name    = "Chat"
+        project_name = None
 
     return render_template("chat.html",
         messages=message_pairs,
@@ -195,7 +245,9 @@ def chat_view(chat_id):
         show_chat_sidebar=True,
         llm_models=llm_models,
         current_model_id=current_model_id,
-        current_model_name=current_model_name
+        current_model_short=current_model_short,
+        chat_name=chat_name,
+        project_name=project_name
     )
 
 @chat_bp.route("/chat/<int:chat_id>/rename", methods=["POST"])
@@ -296,6 +348,37 @@ def create_new_chat():
     else:
         flash("Failed to create chat.", "danger")
         return redirect("/chat")
+
+# @chat_bp.route("/chat/<int:chat_id>/export", methods=["GET"])
+# @login_required
+# def export_chat_markdown(chat_id):
+#     user_id = session["user_id"]
+
+#     # Fetch messages and responses
+#     rows = db.read_sql_query("""
+#         SELECT
+#             m.txContent AS message,
+#             m.dtCreated AS message_time,
+#             r.txContent AS response,
+#             r.dtCreated AS response_time
+#         FROM chatbot_schema.message m
+#         LEFT JOIN chatbot_schema.response r ON m.idmessage = r.idmessage
+#         WHERE m.idchat = %s AND m.idappuser = %s
+#         ORDER BY m.dtcreated ASC;
+#     """, (chat_id, user_id))
+
+#     # Convert to Markdown format
+#     markdown_lines = [f"# 🧠 Chat Export (Chat ID: {chat_id})\n"]
+#     for row in rows:
+#         msg_time = row[1].strftime("%Y-%m-%d %H:%M:%S")
+#         resp_time = row[3].strftime("%Y-%m-%d %H:%M:%S") if row[3] else ""
+#         markdown_lines.append(f"### 🧑 You ({msg_time})\n{row[0]}\n")
+#         if row[2]:
+#             markdown_lines.append(f"### 🤖 Bot ({resp_time})\n{row[2]}\n")
+
+#     markdown_content = "\n".join(markdown_lines)
+
+#     return render_template("export_chat.html", markdown=markdown_content, chat_id=chat_id)
 
 @chat_bp.route("/chat/<int:chat_id>/download", methods=["GET"])
 @login_required

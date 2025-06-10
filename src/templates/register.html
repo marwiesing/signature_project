@@ -4,6 +4,9 @@
 
 <h2>Register</h2>
 <form method="POST">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required placeholder="you@example.com" maxlength="255">
+
     <input name="username" placeholder="Username (max 50 chars)" maxlength="50"  required>
     <input name="password" type="password" placeholder="Password (max 100 chars)" maxlength="100"  required>
     <button type="submit">Register</button>
