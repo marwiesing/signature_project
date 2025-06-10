@@ -67,6 +67,17 @@ Weitere Details zur Installation finden sich direkt im Projekt-Repository.
 ✅ Volle Funktionalität implementiert  
 🔜 Geplante Erweiterungen: zusätzliche Modellunterstützung, erweiterte Nutzerrollen
 
+✅ **Fehlerbehebungen & Verbesserungen in V1.1.0**
+
+* Datenbankschema: txshortname ergänzt und Kurznamen (R1/Coder) hinterlegt
+* Chat-Header: Anzeige von Projekt- und Chat-Namen (Projekt > Chat)
+* Bot-Antworten: Kurzname in jeder Nachricht und konsistente XML-/Markdown-Ausgabe
+* Timeout-Handling: Unterbrechung der Reload-Schleife, Inline-Fehlermeldung
+* Projektliste/UI: Layout-Update, Felder für Name/Beschreibung/Created korrigiert
+* Chat-Formular: Inline-Fehlermeldung, scrollbare & widths-lock für .chat-box
+* Templates & Routen: Datenübergabe und Paare-Logik optimiert
+* Admin-Dashboard: Statistiken und Benutzerverwaltung mit Beförderungsfunktion
+
 ---
 
 ## Verweise

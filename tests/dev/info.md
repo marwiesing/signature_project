@@ -1,1 +1,0 @@
-this dev directory is the backup to run my script local with the Postgres-DB on my Control-Plane.

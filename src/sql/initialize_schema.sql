@@ -2,6 +2,7 @@
 CREATE TABLE chatbot_schema.app_user (
     idAppUser SERIAL PRIMARY KEY,
     txUsername VARCHAR(50) UNIQUE NOT NULL,
+    txEmail VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     dtCreated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -37,10 +38,12 @@ CREATE TABLE chatbot_schema.project (
 CREATE TABLE chatbot_schema.llm (
     idLLM SERIAL PRIMARY KEY,
     txName VARCHAR(100) UNIQUE NOT NULL,
+    txShortName VARCHAR(50) UNIQUE NOT NULL,
     dtCreated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-INSERT INTO chatbot_schema.llm (txName) VALUES ('deepseek-r1'), ('deepseek-coder');
+INSERT INTO chatbot_schema.llm (txName, txShortName) VALUES ('deepseek-r1', 'R1'), ('deepseek-coder', 'Coder');
+
 
 -- === CHATS ===
 CREATE TABLE chatbot_schema.chat (
@@ -56,6 +59,7 @@ CREATE TABLE chatbot_schema.chat (
 CREATE TABLE chatbot_schema.message (
     idMessage SERIAL PRIMARY KEY,
     idChat INTEGER NOT NULL REFERENCES chatbot_schema.chat(idChat) ON DELETE CASCADE,
+    idLLM INTEGER REFERENCES chatbot_schema.llm(idLLM) ON DELETE RESTRICT,
     txContent TEXT NOT NULL,
     dtCreated TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
